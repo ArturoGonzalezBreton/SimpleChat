@@ -58,7 +58,7 @@ void Cliente::envia_mensajes() {
     if (respuesta == -1) {
       cout << "Ocurrió un error al recibir el mensaje del servidor" << endl;
         } else {
-      cout << "SERVER> " << string(buffer, respuesta) << "\r\n";
+      cout << "servidor> " << string(buffer, respuesta) << "\r\n";
         }
   } while(true);
     }
