@@ -32,7 +32,6 @@ namespace mensaje {
     LEFT_ROOM,
     DISCONNECT,
     DISCONNECTED,
-    NEW_STATUS
   };
   
   static const char *enum_str[] = {"ERROR", "WARNING", "INFO", "IDENTIFY",

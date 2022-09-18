@@ -112,3 +112,39 @@ std::string Cliente::get_id() {
 usuario::Usuario Cliente::get_usuario() {
   return this -> usuario;
 }
+
+/*
+ * Devuelve el estado del cliente.
+ */
+estado::Estado Cliente::get_estado() {
+  return this -> estado;
+}
+
+/*
+ * Asigna estado al cliente.
+ */
+void Cliente::set_estado(estado::Estado estado) {
+  this -> estado = estado;
+}
+
+/*
+ * Nos dice si son iguales.
+ */
+bool Cliente::operator==(const Cliente& otro) const {
+  return conexion == otro.conexion and
+    puerto == otro.puerto and
+    direccion_ip == otro.direccion_ip and
+    usuario == otro.usuario and
+    estado == otro.estado;
+}
+
+/*
+ * Nos dice si son diferentes.
+ */
+bool Cliente::operator!=(const Cliente& otro) const {
+  return !(conexion == otro.conexion and
+	   puerto == otro.puerto and
+	   direccion_ip == otro.direccion_ip and
+	   usuario == otro.usuario and
+	   estado == otro.estado);
+}

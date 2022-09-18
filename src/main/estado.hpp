@@ -13,7 +13,7 @@ namespace estado {
   
   static const char *enum_str[] = {"ACTIVE", "AWAY", "BUSY"};
   
-  std::string to_string(int estado);
+  std::string a_string(int estado);
   
 }
 

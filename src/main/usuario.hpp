@@ -23,6 +23,16 @@ namespace usuario {
     }
 
     /*
+     * Nos dice si son iguales.
+     */
+    bool operator==(const Usuario& otro) const;
+    
+    /*
+     * Nos dice si son diferentes.
+     */
+    bool operator!=(const Usuario& otro) const;
+
+    /*
      * Devuelve el identificador del usuario.
      */    
     std::string get_nombre();

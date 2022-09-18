@@ -8,6 +8,6 @@ int main() {
   servidor::Servidor servidor(1234);
   servidor.crea_conexion();
   servidor.escucha();
-  servidor.cierra_socket(0);
+  servidor.cierra_socket();
   return 0;
 }

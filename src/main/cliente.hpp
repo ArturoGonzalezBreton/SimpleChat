@@ -1,6 +1,8 @@
 #ifndef CLIENTE_H
 #define CLIENTE_H
 
+#include "estado.hpp"
+#include "mensaje.hpp"
 #include "usuario.hpp"
 #include <iostream>
 #include <sys/types.h>
@@ -24,11 +26,23 @@ namespace cliente {
     sockaddr_in enchufe;
     // Dirección a la que se conectará el cliente.
     std::string direccion_ip = "127.0.0.1";
-    // Usuario del cliente
+    // Usuario del cliente.
     usuario::Usuario usuario;
+    // Estado del cliente.
+    estado::Estado estado;
 
   public:
     Cliente() {}
+
+    /*
+     * Nos dice si son iguales.
+     */
+    bool operator==(const Cliente& rhs) const;
+
+    /*
+     * Nos dice si son diferentes.
+     */
+    bool operator!=(const Cliente& rhs) const;
     
     /*
      * Constructor que recibe únicamente el puerto.
@@ -97,6 +111,16 @@ namespace cliente {
      * Devuelve el usuario.
      */
     usuario::Usuario get_usuario();
+
+    /*
+     * Devuelve el estado del cliente.
+     */
+    estado::Estado get_estado();
+
+    /*
+     * Asigna estado al cliente.
+     */
+    void set_estado(estado::Estado estado);
   };
 }
 

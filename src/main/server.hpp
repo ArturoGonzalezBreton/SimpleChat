@@ -1,6 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include "estado.hpp"
+#include "mensaje.hpp"
 #include "sala.hpp"
 #include "cliente.hpp"
 #include <iostream>
@@ -30,9 +32,44 @@ namespace servidor {
     // Clientes conectados.
     std::map<std::string, cliente::Cliente> clientes;
     // Salas.
-    std::list<sala::Sala> salas;
+    std::map<std::string, sala::Sala> salas;
 
     Servidor() {}
+    
+    /*
+     * Recibe mensajes del cliente.
+     */
+    void recibe_mensaje(cliente::Cliente cliente);
+
+    /*
+     * Asigna identificador al cliente y lo agrega a la lista.
+     */
+    void identifica_cliente(cliente::Cliente cliente, std::string id);
+
+    /*
+     * Asigna un estado al cliente.
+     */
+    void asigna_estado(cliente::Cliente cliente, estado::Estado estado);
+
+    /*
+     * Envia la lista de usuarios a un cliente.
+     */
+    void envia_usuarios(cliente::Cliente cliente);
+
+    /*
+     * Envía un mensaje privado.
+     */
+    void envia_mensaje_privado(cliente::Cliente remitente, std::string id_destinatario, std::string mensaje);
+
+    /*
+     * Envía un mensaje público.
+     */
+    void envia_mensaje_publico(cliente::Cliente remitente, std::string mensaje);
+
+    /*
+     * Crea una nueva sala.
+     */
+    void crea_sala(cliente::Cliente creador, std::string sala);
     
   public:
     
@@ -54,16 +91,11 @@ namespace servidor {
      * Escucha conexiones de los clientes.
      */
     void escucha();
-
-    /*
-     * Asigna identificador al cliente.
-     */
-    void identifica_cliente(cliente::Cliente cliente, std::string id);
     
     /*
-     * Cierra la conexion.
+     * Termina el servidor.
      */
-    void cierra_socket(int num_conexion);
+    void cierra_socket();
 
     /*
      * Recibe mensajes y decide a qué método llamar dependiendo del mensaje recibido.
