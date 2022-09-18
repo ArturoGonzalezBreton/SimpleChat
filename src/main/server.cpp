@@ -13,6 +13,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include <thread>
 
 using namespace std;
 using namespace cliente;
@@ -57,8 +58,9 @@ void servidor::Servidor::escucha() {
     cliente.set_socket(enchufe_cliente);
     // lanza hilo que recibe mensaje con el identificador del cliente y se lo asigna.
     clientes.insert(pair<string, Cliente>(cliente.get_id(), cliente));
-    // lanza hilo que sirve al cliente recién agregado
     sirve(cliente);
+    //thread thread(&Servidor::sirve, this, ref(cliente));
+    //thread.join();
   }
 }
 

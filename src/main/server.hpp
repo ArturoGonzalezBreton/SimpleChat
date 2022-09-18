@@ -1,3 +1,6 @@
+#ifndef SERVER_H
+#define SERVER_H
+
 #include "sala.hpp"
 #include "cliente.hpp"
 #include <iostream>
@@ -14,9 +17,6 @@
 #include <map>
 
 namespace servidor {
-
-  using namespace std;
-  using namespace cliente;
   
   class Servidor {
     
@@ -28,9 +28,9 @@ namespace servidor {
     // Puerto en el que se reciben conexiones.
     int puerto;
     // Clientes conectados.
-    map<string, Cliente> clientes;
+    std::map<std::string, cliente::Cliente> clientes;
     // Salas.
-    list<sala::Sala> salas;
+    std::list<sala::Sala> salas;
 
     Servidor() {}
     
@@ -58,7 +58,7 @@ namespace servidor {
     /*
      * Asigna identificador al cliente.
      */
-    void identifica_cliente(Cliente cliente, string id);
+    void identifica_cliente(cliente::Cliente cliente, std::string id);
     
     /*
      * Cierra la conexion.
@@ -68,11 +68,13 @@ namespace servidor {
     /*
      * Recibe mensajes y decide a qué método llamar dependiendo del mensaje recibido.
      */
-    void sirve(Cliente cliente);
+    void sirve(cliente::Cliente cliente);
 
     /*
      * Cierra la conexion del cliente;
      */
-    void cierra_cliente(string id);
+    void cierra_cliente(std::string id);
   };
 }
+
+#endif
