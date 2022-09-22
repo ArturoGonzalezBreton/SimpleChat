@@ -2,6 +2,7 @@
 #define ESTADO_H
 
 #include <string>
+#include <map>
 
 namespace estado {
 
@@ -11,10 +12,11 @@ namespace estado {
     BUSY
   };
   
-  static const char *enum_str[] = {"ACTIVE", "AWAY", "BUSY"};
+  static std::map<std::string, Estado> tabla = {
+    {"ACTIVE", ACTIVE}, {"AWAY", AWAY}, {"BUSY", BUSY}
+  };
   
-  std::string a_string(int estado);
-  
+  std::string a_string(Estado estado);
 }
 
 #endif

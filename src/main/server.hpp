@@ -69,7 +69,38 @@ namespace servidor {
     /*
      * Crea una nueva sala.
      */
-    void crea_sala(cliente::Cliente creador, std::string sala);
+    void crea_sala(cliente::Cliente creador, std::string id_sala);
+
+    /*
+     * Manda invitación a un usuario para unirse a una sala.
+     * Regresa false en caso de error.
+     */
+    bool invita_a_sala(cliente::Cliente remitente, std::string id_invitado, std::string id_sala);
+
+    /*
+     * Agrega a un usuario a la sala.
+     */
+    void agrega_a_sala(cliente::Cliente cliente, std::string id_sala);
+
+    /*
+     * Envía los miembros de una sala a un cliente.
+     */
+    void envia_miembros(cliente::Cliente cliente, std::string id_sala);
+
+    /*
+     * Envía un mensaje a los usuarios de una sala.
+     */
+    void envia_mensaje_sala(cliente::Cliente cliente, std::string id_sala, std::string mensaje);
+
+    /*
+     * Saca a un cliente de una sala.
+     */
+    void saca_de_sala(cliente::Cliente cliente, std::string id_sala);
+
+    /*
+     * Notifica a los usuarios que alguien se desconectó.
+     */
+    void notifica_salida(cliente::Cliente cliente);
     
   public:
     
