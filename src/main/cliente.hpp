@@ -78,6 +78,11 @@ namespace cliente {
     void envia_mensajes();
 
     /*
+     * Recibe mensajes del servidor.
+     */
+    std::string recibe_mensajes();
+    
+    /*
      * Desconecta al cliente.
      */
     void desconecta();

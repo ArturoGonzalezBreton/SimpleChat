@@ -64,11 +64,14 @@ void servidor::Servidor::escucha() {
     
     clientes.insert(pair<string, Cliente>(cliente.get_id(), cliente));
 
-    sirve(clientes[cliente.get_id()]);
+    //sirve(clientes[cliente.get_id()]);
     // lanza hilo que recibe mensaje con el identificador del
     // cliente y se lo asigna.
-    //thread thread(&Servidor::sirve, this, ref(cliente));
-    //thread.join();
+    //thread hilo(&Servidor::sirve, this, ref(cliente));
+    hilos.push_back(thread(&Servidor::sirve, this, ref(cliente)));
+  }
+  for (auto& it : hilos) {
+    it.join();
   }
 }
 
@@ -430,8 +433,10 @@ void servidor::Servidor::saca_de_sala(Cliente cliente, std::string id_sala) {
     sala::Sala sala = salas[id_sala];
     map<string, Cliente>::iterator it;
     sala.elimina_miembro(cliente);
-    for (it = sala.get_miembros().begin(); it != clientes.end(); it++) 
-      send((it -> second).get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
+    for (it = sala.get_miembros().begin(); it != clientes.end(); it++) {
+      Cliente miembro = it -> second;
+      send(miembro.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
+    }
   }
 }
 

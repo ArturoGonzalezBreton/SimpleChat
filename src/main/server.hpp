@@ -16,6 +16,7 @@
 #include <string.h>
 #include <string>
 #include <list>
+#include <thread>
 #include <map>
 
 namespace servidor {
@@ -33,6 +34,8 @@ namespace servidor {
     std::map<std::string, cliente::Cliente> clientes;
     // Salas.
     std::map<std::string, sala::Sala> salas;
+    // Hilos.
+    std::list<std::thread> hilos;
 
     Servidor() {}
     

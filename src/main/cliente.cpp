@@ -1,3 +1,5 @@
+#include "estado.hpp"
+#include "mensaje.hpp"
 #include "usuario.hpp"
 #include "cliente.hpp"
 #include <iostream>
@@ -8,6 +10,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <string>
+#include <json/json.h>
   
 using namespace std;
 using namespace cliente;
@@ -61,7 +64,18 @@ void Cliente::envia_mensajes() {
       cout << "servidor> " << string(buffer, respuesta) << "\r\n";
         }
   } while(true);
-    }
+}
+
+/*
+ * Recibe mensajes del servidor.
+ */
+string Cliente::recibe_mensajes() {
+  char buffer[4096];
+  int msj_recibido = recv(conexion, buffer, 4096, 0);
+  memset(buffer, 0, 4096);
+  string mensaje = string(buffer, 0, msj_recibido);
+  return mensaje;
+}
 
 /*
  * Desconecta al cliente.
