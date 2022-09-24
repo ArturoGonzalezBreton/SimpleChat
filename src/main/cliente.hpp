@@ -50,6 +50,14 @@ namespace cliente {
     Cliente(int puerto) {
       this -> puerto = puerto;
     }
+
+    /*
+     * Constructor que recibe el puerto y la direccion ip.
+     */
+    Cliente(int puerto, std::string direccion_ip) {
+      this -> puerto = puerto;
+      this -> direccion_ip = direccion_ip;
+    }
     
     /*
      * Constructor que recibe el puerto al que se conectará, la dirección ip
@@ -75,7 +83,7 @@ namespace cliente {
     /*
      * Envía mensajes al servidor.
      */
-    void envia_mensajes();
+    void envia_mensaje(std::string mensaje);
 
     /*
      * Recibe mensajes del servidor.
@@ -106,11 +114,16 @@ namespace cliente {
      * Asigna un enchufe al cliente.
      */
     void set_socket(sockaddr_in enchufe);
-
+  
     /*
      * Devuelve el identificador del usuario.
      */
     std::string get_id();
+
+    /*
+     * Devuelve el identificador del usuario.
+     */
+    void set_id(std::string id);
 
     /*
      * Devuelve el usuario.

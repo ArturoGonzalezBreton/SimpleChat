@@ -35,35 +35,17 @@ int Cliente::crea_conexion() {
  */
 void Cliente::conecta() {
   if (connect(conexion, (sockaddr*)&enchufe, sizeof(enchufe)) == -1) {
-	throw runtime_error("No se pudo conectar al servidor");
+    throw runtime_error("No se pudo conectar al servidor");
   }
 }
 
 /*
  * Envía mensajes al servidor.
  */
-void Cliente::envia_mensajes() {
-  char buffer[4096];
-  string mensaje;
-  do {      
-    cout << "> ";
-    getline(cin, mensaje);
-    if (mensaje == "\\DESCONECTA") {
-	  break;
-	  desconecta();
-    }
-    if (send(conexion, mensaje.c_str(), mensaje.size() + 1, 0) == -1) {	  
-      cout << "El mensaje no pudo ser enviado al servidor" << endl;
-      continue;
-    }
-    memset(buffer, 0, 4096);
-    int respuesta = recv(conexion, buffer, 4096, 0);
-    if (respuesta == -1) {
-      cout << "Ocurrió un error al recibir el mensaje del servidor" << endl;
-        } else {
-      cout << "servidor> " << string(buffer, respuesta) << "\r\n";
-        }
-  } while(true);
+void Cliente::envia_mensaje(std::string mensaje) {
+  if (send(conexion, mensaje.c_str(), mensaje.size() + 1, 0) == -1) {	  
+    cout << "El mensaje no pudo ser enviado al servidor" << endl;
+  }
 }
 
 /*
@@ -71,10 +53,12 @@ void Cliente::envia_mensajes() {
  */
 string Cliente::recibe_mensajes() {
   char buffer[4096];
-  int msj_recibido = recv(conexion, buffer, 4096, 0);
   memset(buffer, 0, 4096);
-  string mensaje = string(buffer, 0, msj_recibido);
-  return mensaje;
+  int msj_recibido = recv(conexion, buffer, 4096, 0);
+  if (msj_recibido == -1)
+    throw runtime_error("Ocurrió un error al recibir el mensaje");
+  
+  return string(buffer, 0, msj_recibido); 
 }
 
 /*
@@ -118,6 +102,13 @@ void Cliente::set_socket(sockaddr_in enchufe) {
  */
 std::string Cliente::get_id() {
   return (this -> usuario).get_nombre();
+}
+
+/*
+ * Devuelve el identificador del usuario.
+ */
+void Cliente::set_id(std::string id) {
+  (this -> usuario).set_nombre(id);
 }
 
 /*
