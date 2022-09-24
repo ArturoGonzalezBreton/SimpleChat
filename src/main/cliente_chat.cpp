@@ -29,7 +29,7 @@ int main() {
       } while (respuesta.find("WARNING") != std::string::npos);
     }
     cout << "> ";
-    getline(cin, mensaje);
+    cin >> mensaje;
     cliente.envia_mensaje(mensaje);
     respuesta = cliente.recibe_mensajes();
     cout << "s> " << respuesta << endl;

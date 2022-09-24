@@ -43,7 +43,7 @@ void Cliente::conecta() {
  * Envía mensajes al servidor.
  */
 void Cliente::envia_mensaje(std::string mensaje) {
-  if (send(conexion, mensaje.c_str(), mensaje.size() + 1, 0) == -1) {	  
+  if (send(conexion, mensaje.c_str(), mensaje.size(), 0) == -1) {	  
     cout << "El mensaje no pudo ser enviado al servidor" << endl;
   }
 }

@@ -68,7 +68,7 @@ void servidor::Servidor::escucha() {
     // lanza hilo que recibe mensaje con el identificador del
     // cliente y se lo asigna.
     //thread hilo(&Servidor::sirve, this, ref(cliente));
-    hilos.push_back(thread(&Servidor::sirve, this, ref(cliente)));
+    hilos.push_back(thread(&Servidor::recibe_mensaje, this, ref(cliente)));
   }
   for (auto& it : hilos) {
     it.join();
@@ -102,7 +102,7 @@ void servidor::Servidor::identifica_cliente(Cliente cliente, string id) {
       send((it -> second).get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
     }
   }
-  cliente.get_usuario().set_nombre(id);
+  cliente.set_id(id);
   this -> clientes.insert({id, cliente});
   send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);  
 }
@@ -485,23 +485,26 @@ void servidor::Servidor::cierra_socket() {
  * del mensaje recibido.
  */
 void servidor::Servidor::sirve(Cliente cliente) {
-  char buffer[4096];
-  while (true)
-    {
-      memset(buffer, 0, 4096);
+  // char buffer[4096];
+
+  bool recibido = true;
+  while (recibido) {
+    
+    recibido = recibe_mensaje(cliente);
+      // memset(buffer, 0, 4096);
       
-      int msj_recibido = recv(cliente.get_conexion(), buffer, 4096, 0);
-      if (msj_recibido == -1){
-	throw runtime_error("Ocurrió un error al recibir el mensaje.");
-      }
+      // int msj_recibido = recv(cliente.get_conexion(), buffer, 4096, 0);
+      // if (msj_recibido == -1){
+      // 	throw runtime_error("Ocurrió un error al recibir el mensaje.");
+      // }
       
-      if (msj_recibido == 0){
-	cout << "Cliente desconectado" << endl;
-	break;
-      }
+      // if (msj_recibido == 0){
+      // 	cout << "Cliente desconectado" << endl;
+      // 	break;
+      // }
       
-      cout << string(buffer, 0, msj_recibido) << endl;
-      send(cliente.get_conexion(), buffer, msj_recibido + 1, 0);
+      // cout << string(buffer, 0, msj_recibido) << endl;
+      // send(cliente.get_conexion(), buffer, msj_recibido + 1, 0);
     }
 }
 
@@ -510,133 +513,179 @@ void servidor::Servidor::sirve(Cliente cliente) {
  */
 void servidor::Servidor::cierra_cliente(string id) {
   close(clientes[id].get_conexion());
+  clientes.erase(id);
 }
 
-void servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
+bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
   char buffer[4096];
-  int msj_recibido = recv(cliente.get_conexion(), buffer, 4096, 0);
-  memset(buffer, 0, 4096);
-  string mensaje = string(buffer, 0, msj_recibido);
 
-  Reader reader;
-  Value msj_json;
-
-  reader.parse(mensaje, msj_json);
-
-  if (!msj_json.isMember("type")) {
-    cierra_cliente(cliente.get_id());
-  }
+  while (true) {
+    memset(buffer, 0, 4096);
+    int msj_recibido = recv(cliente.get_conexion(), buffer, 4096, 0);
     
-  switch (mensaje::tabla[msj_json["type"].asString()]) {
+    if (msj_recibido == -1) {
+      throw runtime_error("Ocurrió un error al recibir el mensaje.");
+    }
     
-  case mensaje::Mensaje::IDENTIFY:
-    if (!msj_json.isMember("username")) {
+    if (msj_recibido == 0){
+      cout << "Cliente desconectado" << endl;
       cierra_cliente(cliente.get_id());
+      return false;
     }
-    identifica_cliente(cliente, msj_json["username"].asString());
-    break;
+    
+    string mensaje = string(buffer, 0, msj_recibido);
+    
+    cout << mensaje << endl;
+    
+    Reader reader;
+    Value msj_json;
+    
+    reader.parse(mensaje, msj_json);
 
-  case mensaje::Mensaje::STATUS:
-    if (!msj_json.isMember("status")) {
+    if (!msj_json.isMember("type")) {
       cierra_cliente(cliente.get_id());
+      cout << "No es un json valido" << endl;
+      return false;
     }
-    switch (estado::tabla[msj_json["status"].asString()]) {
-
-    case estado::AWAY:
-      asigna_estado(cliente, estado::Estado::AWAY);
-      break;
-
-    case estado::ACTIVE:
-      asigna_estado(cliente, estado::Estado::ACTIVE);
-      break;
-
-    case estado::BUSY:
-      asigna_estado(cliente, estado::Estado::BUSY);
+    
+    switch (mensaje::tabla[msj_json["type"].asString()]) {
+    
+    case mensaje::Mensaje::IDENTIFY:
+      if (!msj_json.isMember("username")) {
+	cierra_cliente(cliente.get_id());
+	cout << "IDENTIFY no válido" << endl;
+	return false;
+      }
+      identifica_cliente(cliente, msj_json["username"].asString());
       break;
       
-    default:
-      cierra_cliente(cliente.get_id());
-    }
-    break;    
-
-  case mensaje::Mensaje::USERS:
-    envia_usuarios(cliente);
-    break;
-
-  case mensaje::Mensaje::MESSAGE:
-    if (!msj_json.isMember("username") || !msj_json.isMember("message")) {
-      cierra_cliente(cliente.get_id());
-    }
-    envia_mensaje_privado(cliente, msj_json["username"].asString(), msj_json["message"].asString());
-    break;
-    
-  case mensaje::Mensaje::PUBLIC_MESSAGE:
-    if (!msj_json.isMember("message")) {
-      cierra_cliente(cliente.get_id());
-    }
-    envia_mensaje_publico(cliente, msj_json["message"].asString());
-    break;
-    
-  case mensaje::Mensaje::NEW_ROOM:
-    if (!msj_json.isMember("roomname")) {
-      cierra_cliente(cliente.get_id());
-    }
-    crea_sala(cliente, msj_json["rooomname"].asString());
-    break;
-    
-  case mensaje::Mensaje::INVITE: {
-    if (!msj_json.isMember("roomname") || !msj_json.isMember("usernames")) {
-      cierra_cliente(cliente.get_id());
-    }
-    Value invitados = msj_json["usernames"];
-    if (invitados.empty()) cierra_cliente(cliente.get_id());
-    
-    bool existen_usuarios;
-    for (uint i = 0; i < invitados.size(); i++) 
-      existen_usuarios = existen_usuarios and (clientes.find(invitados[i].asString()) == clientes.end());
-    
-    if (existen_usuarios) {
-      bool existe_sala = true;
-      for (uint i = 0; i < invitados.size() and existe_sala; i++) {
-	existe_sala = invita_a_sala(cliente, invitados[i].asString(), msj_json["roomname"].asString());
+    case mensaje::Mensaje::STATUS:
+      if (!msj_json.isMember("status")) {
+	cierra_cliente(cliente.get_id());
+	cout << "STATUS no válido" << endl;
+	return false;
       }
+      switch (estado::tabla[msj_json["status"].asString()]) {
+	
+      case estado::AWAY:
+	asigna_estado(cliente, estado::Estado::AWAY);
+	break;
+	
+      case estado::ACTIVE:
+	asigna_estado(cliente, estado::Estado::ACTIVE);
+	break;
+      
+      case estado::BUSY:
+	asigna_estado(cliente, estado::Estado::BUSY);
+	break;
+	
+      default:
+	cierra_cliente(cliente.get_id());
+	cout << "Estado no válido" << endl;
+	return false;
+      }
+      break;    
+      
+    case mensaje::Mensaje::USERS:
+      envia_usuarios(cliente);
+      break;
+      
+    case mensaje::Mensaje::MESSAGE:
+      if (!msj_json.isMember("username") || !msj_json.isMember("message")) {
+	cierra_cliente(cliente.get_id());
+	cout << "MESSAGE no válido" << endl;
+	return false;
+      }
+      envia_mensaje_privado(cliente, msj_json["username"].asString(), msj_json["message"].asString());
+      break;
+      
+    case mensaje::Mensaje::PUBLIC_MESSAGE:
+      if (!msj_json.isMember("message")) {
+	cierra_cliente(cliente.get_id());
+	cout << "PUBLIC_MESSAGE no válido" << endl;
+	return false;
+      }
+      envia_mensaje_publico(cliente, msj_json["message"].asString());
+      break;
+      
+    case mensaje::Mensaje::NEW_ROOM:
+      if (!msj_json.isMember("roomname")) {
+	cierra_cliente(cliente.get_id());
+	cout << "NEW_ROOM no válido" << endl;
+	return false;
+      }
+      crea_sala(cliente, msj_json["rooomname"].asString());
+      break;
+      
+    case mensaje::Mensaje::INVITE: {
+      if (!msj_json.isMember("roomname") || !msj_json.isMember("usernames")) {
+	cierra_cliente(cliente.get_id());
+	cout << "INVITE no válido" << endl;
+	return false;
+      }
+      Value invitados = msj_json["usernames"];
+      if (invitados.empty()) {
+	cierra_cliente(cliente.get_id());
+	cout << "usernames en INVITE no válido" << endl;
+	return false;
+      }
+      
+      bool existen_usuarios;
+      for (uint i = 0; i < invitados.size(); i++) 
+	existen_usuarios = existen_usuarios and (clientes.find(invitados[i].asString()) == clientes.end());
+      
+      if (existen_usuarios) {
+	bool existe_sala = true;
+	for (uint i = 0; i < invitados.size() and existe_sala; i++) {
+	  existe_sala = invita_a_sala(cliente, invitados[i].asString(), msj_json["roomname"].asString());
+	}
     }
+      break;
+    }
+      
+    case mensaje::Mensaje::JOIN_ROOM:
+      if (!msj_json.isMember("roomname")) {
+	cierra_cliente(cliente.get_id());
+	cout << "JOIN_ROOM no válido" << endl;
+	return false;
+      }
+      agrega_a_sala(cliente, msj_json["roomname"].asString());
+      break;
+      
+    case mensaje::Mensaje::ROOM_USERS:
+      if (!msj_json.isMember("roomname")) {
+	cierra_cliente(cliente.get_id());
+	cout << "ROOM_USERS no válido" << endl;
+	return false;
+      }
+      envia_miembros(cliente, msj_json["roomname"].asString());
+      break;
+      
+    case mensaje::Mensaje::ROOM_MESSAGE:
+      if (!msj_json.isMember("roomname") || !msj_json.isMember("message")) {
+	cierra_cliente(cliente.get_id());
+	cout << "ROOM_MESSAGE no válido" << endl;
+	return false;
+      }
+      envia_mensaje_sala(cliente, msj_json["roomname"].asString(), msj_json["message"].asString());
+      break;
+
+    case mensaje::Mensaje::LEAVE_ROOM:
+      if (!msj_json.isMember("roomname")) {
+	cierra_cliente(cliente.get_id());
+	cout << "LEAVE_ROOM no válido" << endl;
+	return false;
+      }
+      saca_de_sala(cliente, msj_json["roomname"].asString());
     break;
-  }
     
-  case mensaje::Mensaje::JOIN_ROOM:
-    if (!msj_json.isMember("roomname")) {
-      cierra_cliente(cliente.get_id());
-    }
-    agrega_a_sala(cliente, msj_json["roomname"].asString());
-    break;
-
-  case mensaje::Mensaje::ROOM_USERS:
-    if (!msj_json.isMember("roomname")) {
-      cierra_cliente(cliente.get_id());
-    }
-    envia_miembros(cliente, msj_json["roomname"].asString());
-    break;
-
-  case mensaje::Mensaje::ROOM_MESSAGE:
-    if (!msj_json.isMember("roomname") || !msj_json.isMember("message")) {
-      cierra_cliente(cliente.get_id());
-    }
-    envia_mensaje_sala(cliente, msj_json["roomname"].asString(), msj_json["message"].asString());
-    break;
-
-  case mensaje::Mensaje::LEAVE_ROOM:
-    if (!msj_json.isMember("roomname")) {
-      cierra_cliente(cliente.get_id());
-    }
-    saca_de_sala(cliente, msj_json["roomname"].asString());
-    break;
-
   case mensaje::Mensaje::DISCONNECT:
     notifica_salida(cliente);
-
-  default:
-    cierra_cliente(cliente.get_id());
+    
+    default:
+      return false;    
+    }
   }
+  return true;
 }
  

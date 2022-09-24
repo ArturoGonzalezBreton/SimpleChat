@@ -42,7 +42,7 @@ namespace servidor {
     /*
      * Recibe mensajes del cliente.
      */
-    void recibe_mensaje(cliente::Cliente cliente);
+    bool recibe_mensaje(cliente::Cliente cliente);
 
     /*
      * Asigna identificador al cliente y lo agrega a la lista.
