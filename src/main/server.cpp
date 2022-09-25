@@ -62,12 +62,6 @@ void servidor::Servidor::escucha() {
     
     cliente.set_socket(enchufe_cliente);
     
-    // mod1  clientes.insert(pair<string, Cliente>(cliente.get_id(), cliente));
-
-    //sirve(clientes[cliente.get_id()]);
-    // lanza hilo que recibe mensaje con el identificador del
-    // cliente y se lo asigna.
-    //thread hilo(&Servidor::sirve, this, ref(cliente));
     hilos.push_back(thread(&Servidor::recibe_mensaje, this, ref(cliente)));
   }
   for (auto& it : hilos) {
