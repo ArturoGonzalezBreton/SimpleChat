@@ -61,7 +61,7 @@ int main() {
   
   string mensaje;
   string respuesta;
-  //while(mensaje.find("DISCONNECT") != std::string::npos) {
+
   if (client.get_id().empty()) {
     do {
       cout << "Ingrese un identificador" << endl;
@@ -78,12 +78,6 @@ int main() {
   thread hilo(impr_env, ref(client));
   impr_recv(client);
   hilo.join();
-  //cout << "> ";
-  // cin >> mensaje;
-  //   cliente.envia_mensaje(mensaje);
-  //   respuesta = cliente.recibe_mensajes();
-  //   cout << "s> " << respuesta << endl;
-  // }
   client.desconecta();
   return 0;
 }

@@ -27,27 +27,6 @@ map<string, cliente::Cliente> Sala::get_miembros() {
 }
 
 /*
- * Regresa la lista de invitaciones.
- */
-std::list<Sala::Invitacion> Sala::get_invitaciones() {
-  return this -> invitaciones;
-}
-
-/*
- * Busca una invitación.
- */
-bool Sala::hay_invitacion(usuario::Usuario invitado, usuario::Usuario invitador) {
-  Invitacion invitacion(invitado.get_nombre(), invitador.get_nombre());
-
-  list<Invitacion>::iterator it;
-  for (it = invitaciones.begin(); it != invitaciones.end(); it++) {
-    if (*it == invitacion) return true;
-  }
-
-  return false;
-}
-
-/*
  * Regresa la lista de invitados.
  */
 std::list<usuario::Usuario> Sala::get_invitados() {
@@ -106,11 +85,4 @@ bool Sala::agrega_miembro(cliente::Cliente &cliente) {
  */
 bool Sala::es_vacia() {
   return this -> miembros.empty();
-}
-
-/*
- * Elimina a un invitado de la lista de invitados,
- */
-void Sala::elimina_invitacion(usuario::Usuario usuario) {
-  //invitados.erase(usuario);
 }

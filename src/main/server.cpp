@@ -161,22 +161,12 @@ void servidor::Servidor::envia_usuarios(Cliente &cliente) {
  */
 void servidor::Servidor::envia_mensaje_privado(Cliente &remitente, string id_destinatario, string mensaje) {
   string respuesta;
-  if (clientes.find(id_destinatario) == clientes.end()) {
-    respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += " \"message\": \"El usuario '";
-    respuesta.append(id_destinatario).append("' no existe\", \n");
-    respuesta += " \"operation\": \"MESSAGE\", \n";
-    respuesta += " \"username\": \"";
-    respuesta.append(id_destinatario).append("\" }");
-    send(remitente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0); 
-  } else {
-    respuesta = "{ \"type\": \"MESSAGE_FROM\", \n";
-    respuesta += "{ \"username\": \"";
-    respuesta.append(remitente.get_id()).append("\", \n");
-    respuesta += " \"message\": \"";
-    respuesta.append(mensaje).append("\" }");
-    send(clientes[id_destinatario].get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
-  }
+  respuesta = "{ \"type\": \"MESSAGE_FROM\", \n";
+  respuesta += "{ \"username\": \"";
+  respuesta.append(remitente.get_id()).append("\", \n");
+  respuesta += " \"message\": \"";
+  respuesta.append(mensaje).append("\" }");
+  send(clientes[id_destinatario].get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
 }
 
 /*
@@ -212,13 +202,11 @@ void servidor::Servidor::crea_sala(Cliente &creador, sala::Sala &sala) {
     respuesta.append(sala.get_id()).append("\" }");
     send(creador.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
-    //sala::Sala nueva_sala = sala::Sala(creador, id_sala);
     this -> salas.insert({sala.get_id(), sala});
     respuesta = "{ \"type\": \"INFO\", \n";
     respuesta += " \"message\": \"success\", \n";
     respuesta += " \"operation\": \"NEW_ROOM\" }";
     send(creador.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
-    //sala.agrega_miembro(creador);
   }
 }
 
@@ -257,12 +245,13 @@ bool servidor::Servidor::invita_a_sala(Cliente &remitente, string id_invitado, s
 /*
  * Envía un mensaje al cliente indicando que el usuario no existe.
  */
-void servidor::Servidor::envia_error_usuario(Cliente &cliente, string no_existente) {
+void servidor::Servidor::envia_error_usuario(Cliente &cliente, string no_existente, string operacion) {
   string respuesta;
   respuesta = "{ \"type\": \"WARNING\", \n";
   respuesta += " \"message\": \"El usuario '";
   respuesta.append(no_existente).append("' no existe\", \n");
-  respuesta += " \"operation\": \"INVITE\", \n";
+  respuesta += " \"operation\": \"";
+  respuesta.append(operacion).append("\", \n");
   respuesta += " \"username\": \"";
   respuesta.append(no_existente).append("\" }");
   send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
@@ -416,28 +405,20 @@ void servidor::Servidor::notifica_salida(Cliente &cliente) {
   aviso = "{ \"type\": \"DISCONNECTED\", \n";
   aviso += " \"username\": \"";
   aviso.append(cliente.get_id()).append("\" }");
-  map<string, Cliente>::iterator it;
-  for (it = clientes.begin(); it != clientes.end(); it++)
-    send((it -> second).get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
+  for (auto& [key, val] : clientes) 
+    send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
 
-  map<string, sala::Sala>::iterator it_salas;
-  for (it_salas = salas.begin(); it_salas != salas.end(); it_salas++) {
-    sala::Sala sala = it_salas -> second;
-    map<string, Cliente>::iterator it_client;
-    string id_sala = sala.get_id();
-    
+  for (auto& [key, val] : salas) {
+    string id_sala = val.get_id();
     aviso = "{ \"type\": \"LEFT_ROOM\", \n";
     aviso += "{ \"roomname\": \"";
     aviso.append(id_sala).append("\", \n");
     aviso += " \"username\": \"";
-    aviso.append(cliente.get_id()).append("\" }");
-    
-    sala.elimina_miembro(cliente);
-
-    for (it_client = sala.get_miembros().begin(); it_client != clientes.end(); it_client++) 
-      send((it_client -> second).get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
+    aviso.append(cliente.get_id()).append("\" }");    
+    val.elimina_miembro(cliente);
+    for (auto& [key_c, val_c] : val.get_miembros()) 
+      send(val_c.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
   }
-
   cierra_cliente(cliente.get_id());
 }
 
@@ -492,12 +473,10 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     Reader reader;
     Value msj_json;
 
-    
     reader.parse(mensaje, msj_json);
 
     if (!msj_json.isMember("type")) {
       cierra_cliente(cliente.get_id());
-      cout << "No es un json valido" << endl;
       return false;
     }
     
@@ -506,7 +485,6 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::IDENTIFY:
       if (!msj_json.isMember("username")) {
 	cierra_cliente(cliente.get_id());
-	cout << "IDENTIFY no válido" << endl;
 	return false;
       }
       identifica_cliente(cliente, msj_json["username"].asString());
@@ -515,7 +493,6 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::STATUS:
       if (!msj_json.isMember("status")) {
 	cierra_cliente(cliente.get_id());
-	cout << "STATUS no válido" << endl;
 	return false;
       }
       switch (estado::tabla[msj_json["status"].asString()]) {
@@ -534,7 +511,6 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
 	
       default:
 	cierra_cliente(cliente.get_id());
-	cout << "Estado no válido" << endl;
 	return false;
       }
       break;    
@@ -546,16 +522,19 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::MESSAGE:
       if (!msj_json.isMember("username") || !msj_json.isMember("message")) {
 	cierra_cliente(cliente.get_id());
-	cout << "MESSAGE no válido" << endl;
 	return false;
       }
-      envia_mensaje_privado(cliente, msj_json["username"].asString(), msj_json["message"].asString());
+      if (clientes.find(msj_json["username"].asString()) == clientes.end()) {
+	envia_error_usuario(cliente, msj_json["username"].asString(),
+			    mensaje::a_string(mensaje::Mensaje::MESSAGE));
+      } else {
+	envia_mensaje_privado(cliente, msj_json["username"].asString(), msj_json["message"].asString());
+      }
       break;
       
     case mensaje::Mensaje::PUBLIC_MESSAGE:
       if (!msj_json.isMember("message")) {
 	cierra_cliente(cliente.get_id());
-	cout << "PUBLIC_MESSAGE no válido" << endl;
 	return false;
       }
       envia_mensaje_publico(cliente, msj_json["message"].asString());
@@ -564,7 +543,6 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::NEW_ROOM: {
       if (!msj_json.isMember("roomname")) {
 	cierra_cliente(cliente.get_id());
-	cout << "NEW_ROOM no válido" << endl;
 	return false;
       }
       sala::Sala sala(cliente, msj_json["roomname"].asString());
@@ -575,21 +553,20 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::INVITE: {
       if (!msj_json.isMember("roomname") || !msj_json.isMember("usernames")) {
 	cierra_cliente(cliente.get_id());
-	cout << "INVITE no válido" << endl;
 	return false;
       }
       Value invitados = msj_json["usernames"];
       if (invitados.empty()) {
 	cierra_cliente(cliente.get_id());
-	cout << "usernames en INVITE no válido" << endl;
 	return false;
       }
-      
+
       bool existen_usuarios = true;
-      for (uint i = 0; i < invitados.size() and existen_usuarios; i++) {
-	existen_usuarios = existen_usuarios and (clientes.find(invitados[i].asString()) != clientes.end());
-	if (existen_usuarios == false) {	  
-	  envia_error_usuario(cliente, invitados[i].asString());
+      for (uint i = 0; i < invitados.size(); i++) {
+	if (clientes.find(invitados[i].asString()) == clientes.end()) {
+	  envia_error_usuario(cliente, invitados[i].asString(), mensaje::a_string(mensaje::Mensaje::INVITE));
+	  existen_usuarios = false;
+	  break;
 	}
       }
 
@@ -597,13 +574,10 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
 	envia_error_sala(cliente, msj_json["roomname"].asString(), mensaje::a_string(mensaje::Mensaje::INVITE));
 	break;
       }
-	
-      
+
       if (existen_usuarios) {
-	bool existe_sala = true;
-	for (uint i = 0; i < invitados.size() and existe_sala; i++) {
-	  existe_sala = invita_a_sala(cliente, invitados[i].asString(), msj_json["roomname"].asString());
-	}
+	for (uint i = 0; i < invitados.size(); i++) 
+	  invita_a_sala(cliente, invitados[i].asString(), msj_json["roomname"].asString());
       }
       break;
     }
@@ -611,7 +585,6 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::JOIN_ROOM:
       if (!msj_json.isMember("roomname")) {
 	cierra_cliente(cliente.get_id());
-	cout << "JOIN_ROOM no válido" << endl;
 	return false;
       }
       if (!existe_sala(msj_json["roomname"].asString())) {
@@ -625,7 +598,6 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::ROOM_USERS:
       if (!msj_json.isMember("roomname")) {
 	cierra_cliente(cliente.get_id());
-	cout << "ROOM_USERS no válido" << endl;
 	return false;
       }
       if (!existe_sala(msj_json["roomname"].asString())) {
@@ -639,7 +611,6 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::ROOM_MESSAGE: 
       if (!msj_json.isMember("roomname") || !msj_json.isMember("message")) {
 	cierra_cliente(cliente.get_id());
-	cout << "ROOM_MESSAGE no válido" << endl;
 	return false;
       }
       if (!existe_sala(msj_json["roomname"].asString())) {
@@ -653,7 +624,6 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::LEAVE_ROOM:
       if (!msj_json.isMember("roomname")) {
 	cierra_cliente(cliente.get_id());
-	cout << "LEAVE_ROOM no válido" << endl;
 	return false;
       }
       if (!existe_sala(msj_json["roomname"].asString())) {

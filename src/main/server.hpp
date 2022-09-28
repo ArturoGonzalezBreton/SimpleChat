@@ -83,7 +83,7 @@ namespace servidor {
     /*
      * Envía un mensaje al cliente indicando que el usuario no existe.
      */
-    void envia_error_usuario(cliente::Cliente &cliente, std::string no_existente);
+    void envia_error_usuario(cliente::Cliente &cliente, std::string no_existente, std::string operacion);
 
     /*
      * Envía un mensaje al cliente indicando que la sala no existe.
