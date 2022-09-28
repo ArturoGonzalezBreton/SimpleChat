@@ -47,64 +47,78 @@ namespace servidor {
     /*
      * Asigna identificador al cliente y lo agrega a la lista.
      */
-    void identifica_cliente(cliente::Cliente cliente, std::string id);
+    void identifica_cliente(cliente::Cliente &cliente, std::string id);
 
     /*
      * Asigna un estado al cliente.
      */
-    void asigna_estado(cliente::Cliente cliente, estado::Estado estado);
+    void asigna_estado(cliente::Cliente &cliente, estado::Estado estado);
 
     /*
      * Envia la lista de usuarios a un cliente.
      */
-    void envia_usuarios(cliente::Cliente cliente);
+    void envia_usuarios(cliente::Cliente &cliente);
 
     /*
      * Envía un mensaje privado.
      */
-    void envia_mensaje_privado(cliente::Cliente remitente, std::string id_destinatario, std::string mensaje);
+    void envia_mensaje_privado(cliente::Cliente &remitente, std::string id_destinatario, std::string mensaje);
 
     /*
      * Envía un mensaje público.
      */
-    void envia_mensaje_publico(cliente::Cliente remitente, std::string mensaje);
+    void envia_mensaje_publico(cliente::Cliente &remitente, std::string mensaje);
 
     /*
      * Crea una nueva sala.
      */
-    void crea_sala(cliente::Cliente creador, std::string id_sala);
+    void crea_sala(cliente::Cliente &creador, sala::Sala &sala);
 
     /*
      * Manda invitación a un usuario para unirse a una sala.
      * Regresa false en caso de error.
      */
-    bool invita_a_sala(cliente::Cliente remitente, std::string id_invitado, std::string id_sala);
+    bool invita_a_sala(cliente::Cliente &remitente, std::string id_invitado, std::string id_sala);
 
+    /*
+     * Envía un mensaje al cliente indicando que el usuario no existe.
+     */
+    void envia_error_usuario(cliente::Cliente &cliente, std::string no_existente);
+
+    /*
+     * Envía un mensaje al cliente indicando que la sala no existe.
+     */
+    void envia_error_sala(cliente::Cliente &cliente, std::string no_existente, std::string operacion);
+    
     /*
      * Agrega a un usuario a la sala.
      */
-    void agrega_a_sala(cliente::Cliente cliente, std::string id_sala);
+    void agrega_a_sala(cliente::Cliente &cliente, sala::Sala &sala);
 
     /*
      * Envía los miembros de una sala a un cliente.
      */
-    void envia_miembros(cliente::Cliente cliente, std::string id_sala);
+    void envia_miembros(cliente::Cliente &cliente, std::string id_sala);
 
     /*
      * Envía un mensaje a los usuarios de una sala.
      */
-    void envia_mensaje_sala(cliente::Cliente cliente, std::string id_sala, std::string mensaje);
+    void envia_mensaje_sala(cliente::Cliente &cliente, sala::Sala &sala, std::string mensaje);
 
     /*
      * Saca a un cliente de una sala.
      */
-    void saca_de_sala(cliente::Cliente cliente, std::string id_sala);
+    void saca_de_sala(cliente::Cliente &cliente, sala::Sala &sala);
 
     /*
      * Notifica a los usuarios que alguien se desconectó.
      */
-    void notifica_salida(cliente::Cliente cliente);
-    
+    void notifica_salida(cliente::Cliente &cliente);
+
+    /*
+     * Verifica si existe una sala.
+     */
+    bool existe_sala(std::string id_sala);
   public:
     
     /*

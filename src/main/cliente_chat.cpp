@@ -4,14 +4,12 @@
 #include <thread>
 
 using namespace std;
-using namespace cliente;
+//using namespace cliente;
 
-cliente::Cliente client(1234, "127.0.0.1");
+void impr_recv(cliente::Cliente &client);
+void impr_env(cliente::Cliente &client);
 
-void impr_recv();
-void impr_env();
-
-void impr_recv() {
+void impr_recv(cliente::Cliente &client) {
   string respuesta;
   while(true) {
     try {
@@ -24,10 +22,9 @@ void impr_recv() {
   }
 }
 
-void impr_env() {
+void impr_env(cliente::Cliente &client) {
   string mensaje;
-  while (mensaje.find("DISCONNECT") != std::string::npos) {
-    cout << "> ";
+  while (mensaje.find("DISCONNECT") == std::string::npos) {
     cin >> mensaje;
     client.envia_mensaje(mensaje);
   }
@@ -35,10 +32,32 @@ void impr_env() {
 
 int main() {
   string id;
+  string ip;
+  string puerto;
   
-  //cliente::Cliente cliente(1234, "127.0.0.1");
+  cout << "Escribe la direccion ip:" << endl;
+  cin >> ip;
+  cout << "Escribe el puerto:" << endl;
+  cin >> puerto;
+
+  int port;
+
+  try {
+    port = stoi(puerto);
+  } catch (std::invalid_argument &ia) {
+    cout << "Puerto inválido" << endl;
+    return 0;
+  }
+  
+  cliente::Cliente client(port, ip);
   client.crea_conexion();
-  client.conecta();
+
+  try {
+    client.conecta();
+  } catch (std::runtime_error& e) {
+    cout << e.what() << endl;
+    return 0;
+  }
   
   string mensaje;
   string respuesta;
@@ -56,10 +75,9 @@ int main() {
       cout << "s> " << respuesta << endl;
     } while (respuesta.find("WARNING") != std::string::npos);
   }
-  thread hilo(impr_env);
-  thread hilo1(impr_recv);
+  thread hilo(impr_env, ref(client));
+  impr_recv(client);
   hilo.join();
-  hilo1.join();
   //cout << "> ";
   // cin >> mensaje;
   //   cliente.envia_mensaje(mensaje);

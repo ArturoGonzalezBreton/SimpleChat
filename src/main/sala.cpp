@@ -6,9 +6,16 @@ using namespace std;
 using namespace sala;
 
 /*
+ * Devuelve el creador de la sala.
+ */
+cliente::Cliente Sala::get_creador() {
+  return this -> creador;
+}  
+ 
+/*
  * Devuelve el nombre de la sala.
  */
-string Sala::get_nombre() {
+string Sala::get_id() {
   return this -> nombre;
 }
 
@@ -61,16 +68,49 @@ bool Sala::hay_invitacion(usuario::Usuario invitado) {
 }
 
 /*
+ * Agrega un invitado.
+ */
+void Sala::agrega_invitado(usuario::Usuario invitado) {
+  if (!hay_invitacion(invitado))
+    this -> invitados.push_back(invitado);     
+}
+
+/*
  * Busca un miembro en la sala.
  */
-bool Sala::es_miembro(cliente::Cliente miembro) {
-  return miembros.find(miembro.get_id()) != miembros.end();
+bool Sala::es_miembro(cliente::Cliente &miembro) {
+  return this -> miembros.find(miembro.get_id()) != miembros.end();
 }
 
 /*
  * Elimina a un miembro.
  */
-void Sala::elimina_miembro(cliente::Cliente cliente) {
-  if (miembros.find(cliente.get_id()) != miembros.end()) 
-      miembros.erase(cliente.get_id());
+void Sala::elimina_miembro(cliente::Cliente &cliente) {
+  if (this -> miembros.find(cliente.get_id()) != miembros.end()) 
+      this -> miembros.erase(cliente.get_id());
+}
+
+/*
+ * Agrega un miembro.
+ */
+bool Sala::agrega_miembro(cliente::Cliente &cliente) {
+  if (this -> miembros.find(cliente.get_id()) == miembros.end()) {
+    this -> miembros.insert({cliente.get_id(), cliente});
+    return true;
+  }
+  return false;
+} 
+
+/*
+ * Verifica si hay usuarios en la sala.
+ */
+bool Sala::es_vacia() {
+  return this -> miembros.empty();
+}
+
+/*
+ * Elimina a un invitado de la lista de invitados,
+ */
+void Sala::elimina_invitacion(usuario::Usuario usuario) {
+  //invitados.erase(usuario);
 }

@@ -57,6 +57,8 @@ string Cliente::recibe_mensajes() {
   int msj_recibido = recv(conexion, buffer, 4096, 0);
   if (msj_recibido == -1)
     throw runtime_error("Ocurrió un error al recibir el mensaje");
+  if (msj_recibido == 0)
+    throw runtime_error("El servidor se ha desconectado");
   
   return string(buffer, 0, msj_recibido); 
 }

@@ -25,7 +25,7 @@ namespace cliente {
     // Socket para conectarse con el servidor.
     sockaddr_in enchufe;
     // Dirección a la que se conectará el cliente.
-    std::string direccion_ip = "127.0.0.1";
+    std::string direccion_ip;
     // Usuario del cliente.
     usuario::Usuario usuario;
     // Estado del cliente.

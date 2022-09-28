@@ -48,7 +48,7 @@ namespace sala {
     };
       
     // Nombre dde la sala.
-      std::string nombre;
+    std::string nombre;
     // Creador de la sala.
     cliente::Cliente creador;
     // Usuarios en la sala.
@@ -69,9 +69,14 @@ namespace sala {
     }
 
     /*
+     * Devuelve el creador de la sala.
+     */
+    cliente::Cliente get_creador();
+    
+    /*
      * Devuelve el nombre de la sala.
      */
-    std::string get_nombre();
+    std::string get_id();
 
     /*
      * Devuelve la los miembros de la sala.
@@ -81,7 +86,7 @@ namespace sala {
     /*
      * Busca un miembro en la sala.
      */
-    bool es_miembro(cliente::Cliente miembro);
+    bool es_miembro(cliente::Cliente &miembro);
     
     /*
      * Busca una invitación.
@@ -104,9 +109,29 @@ namespace sala {
     bool hay_invitacion(usuario::Usuario invitado);
 
     /*
+     * Agrega un invitado.
+     */
+    void agrega_invitado(usuario::Usuario invitado);
+    
+    /*
      * Elimina a un miembro.
      */
-    void elimina_miembro(cliente::Cliente cliente);
+    void elimina_miembro(cliente::Cliente &cliente);
+
+    /*
+     * Agrega un miembro.
+     */
+    bool agrega_miembro(cliente::Cliente &cliente);
+
+    /*
+     * Verifica si hay usuarios en la sala.
+     */
+    bool es_vacia();
+
+    /*
+     * Elimina a un invitado de la lista de invitados,
+     */
+    void elimina_invitacion(usuario::Usuario usuario);
   };
 }
 
