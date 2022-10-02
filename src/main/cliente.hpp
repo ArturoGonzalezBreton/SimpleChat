@@ -139,6 +139,26 @@ namespace cliente {
      * Asigna estado al cliente.
      */
     void set_estado(estado::Estado estado);
+
+    /*
+     * Asigna ip del servidor a conectarse.
+     */
+    void set_ip(std::string ip);
+
+    /*
+     * Devuelve ip del servidor a conectarse.
+     */
+    std::string get_ip();
+
+    /*
+     * Asigna puerto del servidor a conectarse.
+     */
+    void set_puerto(int puerto);
+
+    /*
+     * Devuelve puerto del servidor a conectarse.
+     */
+    int get_puerto();
   };
 }
 

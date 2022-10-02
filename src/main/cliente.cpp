@@ -28,7 +28,7 @@ int Cliente::crea_conexion() {
   enchufe.sin_port = htons(puerto);
   inet_pton(AF_INET, direccion_ip.c_str(), &enchufe.sin_addr);
   return 0;
-    }
+}
 
 /*
  * Se conecta al servidor.
@@ -154,4 +154,32 @@ bool Cliente::operator!=(const Cliente& otro) const {
 	   direccion_ip == otro.direccion_ip and
 	   usuario == otro.usuario and
 	   estado == otro.estado);
+}
+
+/*
+ * Asigna ip del servidor a conectarse.
+ */
+void Cliente::set_ip(string ip) {
+  this -> direccion_ip = ip;
+}
+
+/*
+ * Devuelve ip del servidor a conectarse.
+ */
+string Cliente::get_ip() {
+  return this -> direccion_ip;
+}
+
+/*
+ * Asigna puerto del servidor a conectarse.
+ */
+void Cliente::set_puerto(int puerto) {
+  this -> puerto = puerto;
+}
+
+/*
+ * Devuelve puerto del servidor a conectarse.
+ */
+int Cliente::get_puerto() {
+  return this -> puerto;
 }
