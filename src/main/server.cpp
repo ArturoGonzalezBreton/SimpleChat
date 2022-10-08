@@ -392,7 +392,7 @@ void servidor::Servidor::saca_de_sala(Cliente &cliente, sala::Sala &sala) {
     for (auto& [key, val] : sala.get_miembros()) {
       send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
     }
-    if (sala.es_vacia())
+    if (sala.es_vacia() && sala.get_creador() != cliente)
       salas.erase(sala.get_id());    
   }
 }

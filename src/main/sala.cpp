@@ -58,7 +58,7 @@ void Sala::agrega_invitado(usuario::Usuario invitado) {
  * Busca un miembro en la sala.
  */
 bool Sala::es_miembro(cliente::Cliente &miembro) {
-  return this -> miembros.find(miembro.get_id()) != miembros.end();
+  return this -> miembros.find(miembro.get_id()) != miembros.end() || miembro == this -> creador;
 }
 
 /*

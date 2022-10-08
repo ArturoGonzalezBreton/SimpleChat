@@ -44,7 +44,7 @@ void Cliente::conecta() {
  */
 void Cliente::envia_mensaje(std::string mensaje) {
   if (send(conexion, mensaje.c_str(), mensaje.size(), 0) == -1) {	  
-    cout << "El mensaje no pudo ser enviado al servidor" << endl;
+    throw runtime_error("Ocurrió un error al recibir el mensaje");
   }
 }
 

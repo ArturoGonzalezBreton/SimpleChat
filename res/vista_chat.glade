@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkWindow" id="window_chat">
+    <property name="title" translatable="1">Chat</property>
+    <property name="child">
+      <object class="GtkGrid" id="grid_chat">
+        <property name="row-spacing">10</property>
+        <property name="column-spacing">10</property>
+        <child>
+          <object class="GtkLabel" id="label_status">
+            <property name="label" translatable="1">Estado:</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_user">
+            <property name="label" translatable="1">Usuario:</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_room">
+            <property name="label" translatable="1">Sala:</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_message">
+            <property name="label" translatable="1">Mensaje:</property>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry_status">
+            <property name="focusable">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry_user">
+            <property name="focusable">1</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry_room">
+            <property name="focusable">1</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry_message">
+            <property name="focusable">1</property>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_room_users">
+            <property name="label" translatable="1">Lista de usuarios en sala</property>
+            <property name="focusable">1</property>
+            <property name="receives-default">1</property>
+            <property name="margin-top">5</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_create_room">
+            <property name="label" translatable="1">Nueva sala</property>
+            <property name="focusable">1</property>
+            <property name="receives-default">1</property>
+            <property name="margin-top">5</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_join">
+            <property name="label" translatable="1">Unirse a sala</property>
+            <property name="focusable">1</property>
+            <property name="receives-default">1</property>
+            <property name="margin-top">5</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_invite">
+            <property name="label" translatable="1">Invitar a sala</property>
+            <property name="focusable">1</property>
+            <property name="receives-default">1</property>
+            <property name="margin-top">5</property>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_users">
+            <property name="label" translatable="1">Lista de usuarios</property>
+            <property name="focusable">1</property>
+            <property name="receives-default">1</property>
+            <property name="margin-bottom">5</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_leave">
+            <property name="label" translatable="1">Salir de sala</property>
+            <property name="focusable">1</property>
+            <property name="receives-default">1</property>
+            <property name="margin-bottom">5</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_disconnect">
+            <property name="label" translatable="1">Desconectar</property>
+            <property name="focusable">1</property>
+            <property name="receives-default">1</property>
+            <property name="margin-bottom">5</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_send">
+            <property name="label" translatable="1">Enviar mensaje</property>
+            <property name="focusable">1</property>
+            <property name="receives-default">1</property>
+            <property name="margin-bottom">5</property>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
+</interface>
