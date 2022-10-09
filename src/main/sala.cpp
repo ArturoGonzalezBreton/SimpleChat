@@ -65,8 +65,8 @@ bool Sala::es_miembro(cliente::Cliente &miembro) {
  * Elimina a un miembro.
  */
 void Sala::elimina_miembro(cliente::Cliente &cliente) {
-  if (this -> miembros.find(cliente.get_id()) != miembros.end()) 
-      this -> miembros.erase(cliente.get_id());
+  this -> miembros.erase(cliente.get_id());
+  this -> invitados.remove(cliente.get_usuario());
 }
 
 /*

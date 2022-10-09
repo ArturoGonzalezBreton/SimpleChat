@@ -1,5 +1,6 @@
 #include "cliente.hpp"
 #include "../controller/controlador_forma_conexion.hpp"
+#include "../../res/estilizador.hpp"
 #include <iostream>
 #include <gtkmm.h>
 #include <string>
@@ -386,7 +387,7 @@ namespace {
     auto button_disconnect = refBuilder -> get_widget<Gtk::Button>("button_disconnect");
     if (button_disconnect) {
       button_disconnect -> signal_clicked().connect([=, &cliente] () {
-	cliente.envia_mensaje("{ \"type\": \"DISCONNECT\" }\"");
+	cliente.envia_mensaje("{ \"type\": \"DISCONNECT\" }");
 	delete window_chat;
       });
     }
@@ -396,27 +397,35 @@ namespace {
       button_send -> signal_clicked().connect([=, &cliente] () {
 	string mensaje;
 	if (!(entry_status -> get_text()).empty()) {
+	  string estado = entry_status -> get_text();
+	  if (estado != "AWAY" || estado != "ACTIVE" || estado != "BUSY") {
+	    entry_status -> set_text("El estado no es válido");
+	    return;
+	  }
 	  mensaje = "{ \"type\": \"STATUS\", \n";
 	  mensaje += "\"status\" : \"";
 	  mensaje.append(entry_status -> get_text()).append("\" }");
-	} else if (!(entry_user -> get_text()).empty()) {
+	  cliente.envia_mensaje(mensaje);
+	} else if (!(entry_user -> get_text()).empty() && !(entry_message -> get_text()).empty()) {
 	  mensaje = "{ \"type\": \"MESSAGE\", \n";
 	  mensaje += "\"username\" : \"";
 	  mensaje.append(entry_user -> get_text()).append("\", \n");
 	  mensaje += "\"message\" : \"";
 	  mensaje.append(entry_message -> get_text()).append("\" }");
-	} else if (!(entry_room -> get_text()).empty()) {
+	  cliente.envia_mensaje(mensaje);
+	} else if (!(entry_room -> get_text()).empty() && !(entry_message -> get_text()).empty()) {
 	  mensaje = "{ \"type\": \"ROOM_MESSAGE\", \n";
 	  mensaje += "\"roomname\" : \"";
 	  mensaje.append(entry_room -> get_text()).append("\", \n");
 	  mensaje += "\"message\" : \"";
 	  mensaje.append(entry_message -> get_text()).append("\" }");
-	} else {
+	  cliente.envia_mensaje(mensaje);
+	} else if (!(entry_message -> get_text()).empty()) {
 	  mensaje = "{ \"type\": \"PUBLIC_MESSAGE\", \n";
 	  mensaje += "\"message\" : \"";
 	  mensaje.append(entry_message -> get_text()).append("\" }");
+	  cliente.envia_mensaje(mensaje);
 	}
-	cliente.envia_mensaje(mensaje);
       });
     }
 
@@ -426,30 +435,19 @@ namespace {
 }
 
 void impr_recv(cliente::Cliente &client);
-void impr_env(cliente::Cliente &client);
 
 void impr_recv(cliente::Cliente &client) {
   string respuesta;
   while(true) {
     try {
       respuesta = client.recibe_mensajes();
-      cout << "s> " << respuesta << endl;
+      cout << estilizador::estiliza(respuesta) << endl;
     } catch (std::runtime_error& e) {
       cout << e.what() << endl;
       break;
     }
   }
 }
-
-void impr_env(cliente::Cliente &client) {
-  string mensaje;
-  while (mensaje.find("DISCONNECT") == std::string::npos) {
-    cin >> mensaje;
-    client.envia_mensaje(mensaje);
-  }
-}
-
-
 
 int main(int argc, char** argv) {
   cliente::Cliente cliente;

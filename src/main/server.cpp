@@ -75,21 +75,21 @@ void servidor::Servidor::escucha() {
 void servidor::Servidor::identifica_cliente(Cliente &cliente, string id) {
   string respuesta;
   if (clientes.find(id) != clientes.end()) {
-    respuesta = "{ \"type\": \"WARNING\", \n";						     
-    respuesta += " \"message\": \"El usuario '";
+    respuesta = "{ \"type\": \"WARNING\", \n";
+    respuesta += "\"message\": \"El usuario '";
     respuesta.append(id).append("' ya existe\", \n");
-    respuesta += " \"operation\": \"IDENTIFY\", \n";
-    respuesta += " \"username\": \"";
+    respuesta += "\"operation\": \"IDENTIFY\", \n";
+    respuesta += "\"username\": \"";
     respuesta.append(id).append("\" }");
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
     return;
   } else {
     respuesta = "{ \"type\": \"INFO\", \n"; 
-    respuesta += " \"message\": \"success\", \n";
-    respuesta += " \"operation\": \"IDENTIFY\" }";
+    respuesta += "\"message\": \"success\", \n";
+    respuesta += "\"operation\": \"IDENTIFY\" }";
     string aviso;
     aviso = "{ \"type\": \"NEW_USER\", \n";
-    aviso += "{ \"username\": \"";
+    aviso += "\"username\": \"";
     aviso.append(id).append("\" }");
 
     for (auto& [key, val] : clientes) {
@@ -97,6 +97,7 @@ void servidor::Servidor::identifica_cliente(Cliente &cliente, string id) {
     }
   }
   cliente.set_id(id);
+  cliente.set_estado(estado::Estado::ACTIVE);
   this -> clientes.insert({cliente.get_id(), cliente});
   send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);  
 }
@@ -107,23 +108,23 @@ void servidor::Servidor::identifica_cliente(Cliente &cliente, string id) {
 void servidor::Servidor::asigna_estado(Cliente &cliente, estado::Estado estado) {
   string respuesta;
   if (cliente.get_estado() == estado) {
-    respuesta = "{ \"type\": \"WARNING\", \n";						     
-    respuesta += " \"message\": \"El estado ya es '";
+    respuesta = "{ \"type\": \"WARNING\", \n";
+    respuesta += "\"message\": \"El estado ya es '";
     respuesta.append(estado::a_string(estado)).append("'\", \n");
-    respuesta += " \"operation\": \"STATUS\", \n";
-    respuesta += " \"status\": \"";
+    respuesta += "\"operation\": \"STATUS\", \n";
+    respuesta += "\"status\": \"";
     respuesta.append(estado::a_string(estado)).append("\" }");
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
     return;
   } else {
     respuesta = "{ \"type\": \"INFO\", \n"; 
-    respuesta += " \"message\": \"success\", \n";
-    respuesta += " \"operation\": \"STATUS\" }";
+    respuesta += "\"message\": \"success\", \n";
+    respuesta += "\"operation\": \"STATUS\" }";
     string aviso;
     aviso = "{ \"type\": \"NEW_STATUS\", \n";
-    aviso += "{ \"username\": \"";
+    aviso += "\"username\": \"";
     aviso.append(cliente.get_id()).append("\", \n");
-    aviso += " \"status\": \"";
+    aviso += "\"status\": \"";
     aviso.append(estado::a_string(estado)).append("\" }");
 
     for (auto& [key, val] : clientes) {
@@ -151,7 +152,7 @@ void servidor::Servidor::envia_usuarios(Cliente &cliente) {
   usuarios.erase(usuarios.end()-1);
   usuarios += " ]";
   respuesta = "{ \"type\": \"USER_LIST\", \n";
-  respuesta += " \"usernames\": ";
+  respuesta += "\"usernames\": ";
   respuesta.append(usuarios).append(" }");
   send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);  
 }
@@ -162,9 +163,9 @@ void servidor::Servidor::envia_usuarios(Cliente &cliente) {
 void servidor::Servidor::envia_mensaje_privado(Cliente &remitente, string id_destinatario, string mensaje) {
   string respuesta;
   respuesta = "{ \"type\": \"MESSAGE_FROM\", \n";
-  respuesta += "{ \"username\": \"";
+  respuesta += "\"username\": \"";
   respuesta.append(remitente.get_id()).append("\", \n");
-  respuesta += " \"message\": \"";
+  respuesta += "\"message\": \"";
   respuesta.append(mensaje).append("\" }");
   send(clientes[id_destinatario].get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
 }
@@ -175,10 +176,10 @@ void servidor::Servidor::envia_mensaje_privado(Cliente &remitente, string id_des
 void servidor::Servidor::envia_mensaje_publico(Cliente &remitente, string mensaje) {
   string respuesta;
   respuesta = "{ \"type\": \"PUBLIC_MESSAGE_FROM\", \n";
-  respuesta += "{ \"username\": \"";
+  respuesta += "\"username\": \"";
   respuesta.append(remitente.get_id()).append("\", \n");
   cout << respuesta << endl;
-  respuesta += " \"message\": \"";
+  respuesta += "\"message\": \"";
   respuesta.append(mensaje).append("\" }");
 
   for (auto& [key, val] : clientes) {
@@ -195,17 +196,17 @@ void servidor::Servidor::crea_sala(Cliente &creador, sala::Sala &sala) {
   string respuesta;
   if (this -> salas.find(sala.get_id()) != salas.end()) {
     respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += " \"message\": \"El cuarto '";
+    respuesta += "\"message\": \"El cuarto '";
     respuesta.append(sala.get_id()).append("' ya existe\", \n");
-    respuesta += " \"operation\": \"NEW_ROOM\", \n";
-    respuesta += " \"roomname\": \"";
+    respuesta += "\"operation\": \"NEW_ROOM\", \n";
+    respuesta += "\"roomname\": \"";
     respuesta.append(sala.get_id()).append("\" }");
     send(creador.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
     this -> salas.insert({sala.get_id(), sala});
     respuesta = "{ \"type\": \"INFO\", \n";
-    respuesta += " \"message\": \"success\", \n";
-    respuesta += " \"operation\": \"NEW_ROOM\" }";
+    respuesta += "\"message\": \"success\", \n";
+    respuesta += "\"operation\": \"NEW_ROOM\" }";
     send(creador.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   }
 }
@@ -220,20 +221,20 @@ bool servidor::Servidor::invita_a_sala(Cliente &remitente, string id_invitado, s
     return false;
   } else {
     respuesta = "{ \"type\": \"INFO\", \n";
-    respuesta += " \"message\": \"success\"";
-    respuesta += " \"operation\": \"INVITE\", \n";
-    respuesta += " \"roomname\": \"";
+    respuesta += "\"message\": \"success\", \n";
+    respuesta += "\"operation\": \"INVITE\", \n";
+    respuesta += "\"roomname\": \"";
     respuesta.append(id_sala).append("\" }");
     
     string invitacion;
     invitacion = "{ \"type\": \"INVITATION\", \n";
-    invitacion += " \"message\": \"";
+    invitacion += "\"message\": \"";
     invitacion.append(remitente.get_id());
     invitacion += " te invita al cuarto '";
-    invitacion.append(id_sala).append("\", \n");
-    invitacion += " \"username\": \"";
+    invitacion.append(id_sala).append("'\", \n");
+    invitacion += "\"username\": \"";
     invitacion.append(remitente.get_id()).append("\", \n");
-    invitacion += " \"roomname\": \"";
+    invitacion += "\"roomname\": \"";
     invitacion.append(id_sala).append("\" }");
     salas[id_sala].agrega_invitado(clientes[id_invitado].get_usuario());
     send(remitente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
@@ -248,11 +249,11 @@ bool servidor::Servidor::invita_a_sala(Cliente &remitente, string id_invitado, s
 void servidor::Servidor::envia_error_usuario(Cliente &cliente, string no_existente, string operacion) {
   string respuesta;
   respuesta = "{ \"type\": \"WARNING\", \n";
-  respuesta += " \"message\": \"El usuario '";
+  respuesta += "\"message\": \"El usuario '";
   respuesta.append(no_existente).append("' no existe\", \n");
-  respuesta += " \"operation\": \"";
+  respuesta += "\"operation\": \"";
   respuesta.append(operacion).append("\", \n");
-  respuesta += " \"username\": \"";
+  respuesta += "\"username\": \"";
   respuesta.append(no_existente).append("\" }");
   send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
 }
@@ -260,37 +261,37 @@ void servidor::Servidor::envia_error_usuario(Cliente &cliente, string no_existen
 /*
  * Agrega a un usuario a la sala.
  */
-void servidor::Servidor::agrega_a_sala(cliente::Cliente &cliente, sala::Sala &sala) {
+void servidor::Servidor::agrega_a_sala(Cliente &cliente, sala::Sala &sala) {
   string respuesta;
   if (!sala.hay_invitacion(cliente.get_usuario()) and sala.get_creador() != cliente) {
     respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += " \"message\": \"El usuario no ha sido invitado al cuarto '";
+    respuesta += "\"message\": \"El usuario no ha sido invitado al cuarto '";
     respuesta.append(sala.get_id()).append("'\", \n");
-    respuesta += " \"operation\": \"JOIN_ROOM\", \n";
-    respuesta += " \"roomname\": \"";
+    respuesta += "\"operation\": \"JOIN_ROOM\", \n";
+    respuesta += "\"roomname\": \"";
     respuesta.append(sala.get_id()).append("\" }");
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else if (sala.es_miembro(cliente)) {
     respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += " \"message\": \"El usuario ya se unió al cuarto '";
+    respuesta += "\"message\": \"El usuario ya se unió al cuarto '";
     respuesta.append(sala.get_id()).append("'\", \n");
-    respuesta += " \"operation\": \"JOIN_ROOM\", \n";
-    respuesta += " \"roomname\": \"";
+    respuesta += "\"operation\": \"JOIN_ROOM\", \n";
+    respuesta += "\"roomname\": \"";
     respuesta.append(sala.get_id()).append("\" }");
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
     string aviso;
     if (sala.agrega_miembro(cliente)) {
       respuesta = "{ \"type\": \"INFO\", \n";
-      respuesta += " \"message\": \"success\"";
-      respuesta += " \"operation\": \"JOIN_ROOM\", \n";
-      respuesta += " \"roomname\": \"";
+      respuesta += "\"message\": \"success\", \n";
+      respuesta += "\"operation\": \"JOIN_ROOM\", \n";
+      respuesta += "\"roomname\": \"";
       respuesta.append(sala.get_id()).append("\" }");
       send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
       aviso = "{ \"type\": \"JOINED_ROOM\", \n";
-      aviso += "{ \"roomname\": \"";
+      aviso += "\"roomname\": \"";
       aviso.append(sala.get_id()).append("\", \n");
-      aviso += " \"username\": \"";
+      aviso += "\"username\": \"";
       aviso.append(cliente.get_id()).append("\" }");
       for (auto& [key, val] : sala.get_miembros()) {
 	if (val != cliente) 
@@ -303,14 +304,14 @@ void servidor::Servidor::agrega_a_sala(cliente::Cliente &cliente, sala::Sala &sa
 /*
  * Envía los miembros de una sala a un cliente.
  */
-void servidor::Servidor::envia_miembros(cliente::Cliente &cliente, std::string id_sala) {
+void servidor::Servidor::envia_miembros(Cliente &cliente, std::string id_sala) {
   string respuesta;
   if (!salas[id_sala].es_miembro(cliente)) {
     respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += " \"message\": \"El usuario no se ha unido al cuarto '";
+    respuesta += "\"message\": \"El usuario no se ha unido al cuarto '";
     respuesta.append(id_sala).append("'\", \n");
-    respuesta += " \"operation\": \"ROOM_USERS\", \n";
-    respuesta += " \"roomname\": \"";
+    respuesta += "\"operation\": \"ROOM_USERS\", \n";
+    respuesta += "\"roomname\": \"";
     respuesta.append(id_sala).append("\" }");
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
@@ -325,7 +326,7 @@ void servidor::Servidor::envia_miembros(cliente::Cliente &cliente, std::string i
     miembros.erase(miembros.end()-1);
     miembros += " ]";
     respuesta = "{ \"type\": \"ROOM_USER_LIST\", \n";
-    respuesta += " \"usernames\": ";
+    respuesta += "\"usernames\": ";
     respuesta.append(miembros).append(" }");
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   }
@@ -339,19 +340,19 @@ void servidor::Servidor::envia_mensaje_sala(Cliente &cliente, sala::Sala &sala, 
   string id_sala = sala.get_id();
   if (!salas[id_sala].hay_invitacion(cliente.get_usuario()) and !salas[id_sala].es_miembro(cliente)) {
     respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += " \"message\": \"El usuario no se ha unido al cuarto '";
+    respuesta += "\"message\": \"El usuario no se ha unido al cuarto '";
     respuesta.append(id_sala).append("'\", \n");
-    respuesta += " \"operation\": \"\", \n";
-    respuesta += " \"roomname\": \"";
+    respuesta += "\"operation\": \"\", \n";
+    respuesta += "\"roomname\": \"";
     respuesta.append(id_sala).append("\" }");
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
     respuesta = "{ \"type\": \"ROOM_MESSAGE_FROM\", \n";
-    respuesta += "{ \"roomname\": \"";
+    respuesta += "\"roomname\": \"";
     respuesta.append(id_sala).append("\", \n");
-    respuesta += "{ \"username\": \"";
+    respuesta += "\"username\": \"";
     respuesta.append(cliente.get_id()).append("\", \n");
-    respuesta += " \"message\": \"";
+    respuesta += "\"message\": \"";
     respuesta.append(mensaje).append("\" }");
     for (auto& [key, val] : sala.get_miembros()) {
       if (val != cliente)
@@ -366,59 +367,59 @@ void servidor::Servidor::envia_mensaje_sala(Cliente &cliente, sala::Sala &sala, 
 void servidor::Servidor::saca_de_sala(Cliente &cliente, sala::Sala &sala) {
   string respuesta;
   string id_sala = sala.get_id();
-  if ((!sala.hay_invitacion(cliente.get_usuario()) and cliente != sala.get_creador()) ||
-      !sala.es_miembro(cliente)) {
+  if (!sala.es_miembro(cliente)) {
     respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += " \"message\": \"El usuario no se ha unido al cuarto '";
+    respuesta += "\"message\": \"El usuario no se ha unido al cuarto '";
     respuesta.append(id_sala).append("'\", \n");
-    respuesta += " \"operation\": \"LEAVE_ROOM\", \n";
-    respuesta += " \"roomname\": \"";
+    respuesta += "\"operation\": \"LEAVE_ROOM\", \n";
+    respuesta += "\"roomname\": \"";
     respuesta.append(id_sala).append("\" }");
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
     string aviso;
     respuesta = "{ \"type\": \"INFO\", \n";
-    respuesta += " \"message\": \"success\"";
-    respuesta += " \"operation\": \"LEAVE_ROOM\", \n";
-    respuesta += " \"roomname\": \"";
+    respuesta += "\"message\": \"success\", \n";
+    respuesta += "\"operation\": \"LEAVE_ROOM\", \n";
+    respuesta += "\"roomname\": \"";
     respuesta.append(id_sala).append("\" }");
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
     aviso = "{ \"type\": \"LEFT_ROOM\", \n";
-    aviso += "{ \"roomname\": \"";
+    aviso += "\"roomname\": \"";
     aviso.append(id_sala).append("\", \n");
-    aviso += " \"username\": \"";
+    aviso += "\"username\": \"";
     aviso.append(cliente.get_id()).append("\" }");    
     sala.elimina_miembro(cliente);
-    for (auto& [key, val] : sala.get_miembros()) {
-      send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
-    }
-    if (sala.es_vacia() && sala.get_creador() != cliente)
-      salas.erase(sala.get_id());    
+    if (sala.es_vacia()) {
+      salas.erase(sala.get_id());
+    } else {
+      for (auto& [key, val] : sala.get_miembros()) {
+	send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
+      }
+    }  
   }
 }
 
 /*
- * Notifica a los usuarios que alguien se desconectó.
+ * Notifica a los usuarios que alguien se desconectó y saca a ese
+ * cliente de las salas en donde estaba.
  */
 void servidor::Servidor::notifica_salida(Cliente &cliente) {
   string aviso;
-  aviso = "{ \"type\": \"DISCONNECTED\", \n";
-  aviso += " \"username\": \"";
-  aviso.append(cliente.get_id()).append("\" }");
-  for (auto& [key, val] : clientes) 
-    send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
 
   for (auto& [key, val] : salas) {
-    string id_sala = val.get_id();
-    aviso = "{ \"type\": \"LEFT_ROOM\", \n";
-    aviso += "{ \"roomname\": \"";
-    aviso.append(id_sala).append("\", \n");
-    aviso += " \"username\": \"";
-    aviso.append(cliente.get_id()).append("\" }");    
-    val.elimina_miembro(cliente);
-    for (auto& [key_c, val_c] : val.get_miembros()) 
-      send(val_c.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
+    if (val.es_miembro(cliente))
+      saca_de_sala(cliente, val);
+    if (salas.empty()) 
+      break;
   }
+  
+  aviso = "{ \"type\": \"DISCONNECTED\", \n";
+  aviso += "\"username\": \"";
+  aviso.append(cliente.get_id()).append("\" }");
+  for (auto& [key, val] : clientes) {
+    send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
+  }
+  
   cierra_cliente(cliente.get_id());
 }
 
@@ -449,6 +450,10 @@ void servidor::Servidor::cierra_cliente(string id) {
   clientes.erase(id);
 }
 
+/*
+ * Recibe mensajes y decide a qué método llamar dependiendo
+ * del mensaje recibido.
+ */
 bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
   char buffer[4096];
 
@@ -461,7 +466,7 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     }
     
     if (msj_recibido == 0){
-      cout << "Cliente desconectado" << endl;
+      cout << "Cliente " << cliente.get_id() << " desconectado" << endl;
       cierra_cliente(cliente.get_id());
       return false;
     }
@@ -472,16 +477,16 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     
     Reader reader;
     Value msj_json;
-
+    
     reader.parse(mensaje, msj_json);
-
+    
     if (!msj_json.isMember("type")) {
       cierra_cliente(cliente.get_id());
       return false;
     }
     
     switch (mensaje::tabla[msj_json["type"].asString()]) {
-    
+      
     case mensaje::Mensaje::IDENTIFY:
       if (!msj_json.isMember("username")) {
 	cierra_cliente(cliente.get_id());
@@ -497,15 +502,15 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
       }
       switch (estado::tabla[msj_json["status"].asString()]) {
 	
-      case estado::AWAY:
+      case estado::Estado::AWAY:
 	asigna_estado(cliente, estado::Estado::AWAY);
 	break;
 	
-      case estado::ACTIVE:
+      case estado::Estado::ACTIVE:
 	asigna_estado(cliente, estado::Estado::ACTIVE);
 	break;
-      
-      case estado::BUSY:
+	
+      case estado::Estado::BUSY:
 	asigna_estado(cliente, estado::Estado::BUSY);
 	break;
 	
@@ -555,12 +560,13 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
 	cierra_cliente(cliente.get_id());
 	return false;
       }
+      
       Value invitados = msj_json["usernames"];
       if (invitados.empty()) {
 	cierra_cliente(cliente.get_id());
 	return false;
       }
-
+      
       bool existen_usuarios = true;
       for (uint i = 0; i < invitados.size(); i++) {
 	if (clientes.find(invitados[i].asString()) == clientes.end()) {
@@ -569,16 +575,16 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
 	  break;
 	}
       }
-
+      
       if (!existe_sala(msj_json["roomname"].asString())) {
-	envia_error_sala(cliente, msj_json["roomname"].asString(), mensaje::a_string(mensaje::Mensaje::INVITE));
-	break;
+      envia_error_sala(cliente, msj_json["roomname"].asString(), mensaje::a_string(mensaje::Mensaje::INVITE));
+      break;
       }
-
+      
       if (existen_usuarios) {
 	for (uint i = 0; i < invitados.size(); i++) 
 	  invita_a_sala(cliente, invitados[i].asString(), msj_json["roomname"].asString());
-      }
+    }
       break;
     }
       
@@ -598,7 +604,7 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     case mensaje::Mensaje::ROOM_USERS:
       if (!msj_json.isMember("roomname")) {
 	cierra_cliente(cliente.get_id());
-	return false;
+      return false;
       }
       if (!existe_sala(msj_json["roomname"].asString())) {
 	envia_error_sala(cliente, msj_json["roomname"].asString(),
@@ -620,7 +626,7 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
 	envia_mensaje_sala(cliente, salas[msj_json["roomname"].asString()], msj_json["message"].asString());
       }
       break;
-
+    
     case mensaje::Mensaje::LEAVE_ROOM:
       if (!msj_json.isMember("roomname")) {
 	cierra_cliente(cliente.get_id());
@@ -632,18 +638,18 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
       } else {
 	saca_de_sala(cliente, salas[msj_json["roomname"].asString()]);
       }
-      break;
-      
+    break;
+    
     case mensaje::Mensaje::DISCONNECT:
       notifica_salida(cliente);
       
     default:
-      return false;    
+      return false;
     }
   }
   return true;
 }
- 
+
 /*
  * Verifica si existe una sala.
  */
@@ -655,14 +661,14 @@ bool servidor::Servidor::existe_sala(string id_sala) {
 /*
  * Envía un mensaje al cliente indicando que la sala no existe.
  */
- void servidor::Servidor::envia_error_sala(Cliente &cliente, string no_existente, string operacion) {
-   string respuesta;
-   respuesta = "{ \"type\": \"WARNING\", \n";
-   respuesta += " \"message\": \"El cuarto '";
-   respuesta.append(no_existente).append("' no existe\", \n");
-   respuesta += " \"operation\": \"";
-   respuesta.append(operacion).append("\", \n");
-   respuesta += " \"roomname\": \"";
-   respuesta.append(no_existente).append("\" }");
-   send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
- }
+void servidor::Servidor::envia_error_sala(Cliente &cliente, string no_existente, string operacion) {
+  string respuesta;
+  respuesta = "{ \"type\": \"WARNING\", \n";
+  respuesta += "\"message\": \"El cuarto '";
+  respuesta.append(no_existente).append("' no existe\", \n");
+  respuesta += "\"operation\": \"";
+  respuesta.append(operacion).append("\", \n");
+  respuesta += "\"roomname\": \"";
+  respuesta.append(no_existente).append("\" }");
+  send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
+}

@@ -24,7 +24,7 @@ namespace servidor {
   class Servidor {
     
   private:    
-    // Conexión
+    // Conexión.
     int conexion;
     // Socket.
     sockaddr_in enchufe;
@@ -40,7 +40,8 @@ namespace servidor {
     Servidor() {}
     
     /*
-     * Recibe mensajes del cliente.
+     * Recibe mensajes y decide a qué método llamar dependiendo
+     * del mensaje recibido.
      */
     bool recibe_mensaje(cliente::Cliente cliente);
 
@@ -62,12 +63,15 @@ namespace servidor {
     /*
      * Envía un mensaje privado.
      */
-    void envia_mensaje_privado(cliente::Cliente &remitente, std::string id_destinatario, std::string mensaje);
+    void envia_mensaje_privado(cliente::Cliente &remitente,
+			       std::string id_destinatario,
+			       std::string mensaje);
 
     /*
      * Envía un mensaje público.
      */
-    void envia_mensaje_publico(cliente::Cliente &remitente, std::string mensaje);
+    void envia_mensaje_publico(cliente::Cliente &remitente,
+			       std::string mensaje);
 
     /*
      * Crea una nueva sala.
@@ -78,17 +82,23 @@ namespace servidor {
      * Manda invitación a un usuario para unirse a una sala.
      * Regresa false en caso de error.
      */
-    bool invita_a_sala(cliente::Cliente &remitente, std::string id_invitado, std::string id_sala);
+    bool invita_a_sala(cliente::Cliente &remitente,
+		       std::string id_invitado,
+		       std::string id_sala);
 
     /*
      * Envía un mensaje al cliente indicando que el usuario no existe.
      */
-    void envia_error_usuario(cliente::Cliente &cliente, std::string no_existente, std::string operacion);
+    void envia_error_usuario(cliente::Cliente &cliente,
+			     std::string no_existente,
+			     std::string operacion);
 
     /*
      * Envía un mensaje al cliente indicando que la sala no existe.
      */
-    void envia_error_sala(cliente::Cliente &cliente, std::string no_existente, std::string operacion);
+    void envia_error_sala(cliente::Cliente &cliente,
+			  std::string no_existente,
+			  std::string operacion);
     
     /*
      * Agrega a un usuario a la sala.
@@ -103,7 +113,8 @@ namespace servidor {
     /*
      * Envía un mensaje a los usuarios de una sala.
      */
-    void envia_mensaje_sala(cliente::Cliente &cliente, sala::Sala &sala, std::string mensaje);
+    void envia_mensaje_sala(cliente::Cliente &cliente, sala::Sala &sala,
+			    std::string mensaje);
 
     /*
      * Saca a un cliente de una sala.
@@ -119,8 +130,8 @@ namespace servidor {
      * Verifica si existe una sala.
      */
     bool existe_sala(std::string id_sala);
-  public:
     
+  public:    
     /*
      * Constructor que recibe el puerto en el que el servidor
      * Recibirá conexiones.
@@ -146,7 +157,7 @@ namespace servidor {
     void cierra_socket();
 
     /*
-     * Recibe mensajes y decide a qué método llamar dependiendo del mensaje recibido.
+     * Recibe mensajes del cliente
      */
     void sirve(cliente::Cliente cliente);
 

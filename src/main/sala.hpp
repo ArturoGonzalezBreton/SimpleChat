@@ -26,7 +26,7 @@ namespace sala {
 
     Sala() {}
 
-    Sala(cliente::Cliente creador, std::string nombre) {
+    Sala(cliente::Cliente &creador, std::string nombre) {
       this -> creador = creador;
       this -> nombre = nombre;
       this -> miembros.insert({creador.get_id(), creador});

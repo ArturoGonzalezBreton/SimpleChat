@@ -11,7 +11,7 @@ src = ['src/main/server.cpp', 'src/main/cliente.cpp', 'src/main/usuario.cpp',
 servidor = executable('servidor', src, dependencies : deps)
 
 src1 = ['src/main/cliente_chat.cpp', 'src/main/cliente.cpp',
-       'src/main/usuario.cpp', 'src/main/sala.cpp']
+       'src/main/usuario.cpp', 'src/main/sala.cpp', 'res/estilizador.cpp']
 cliente = executable('cliente', src1, dependencies : deps)
 
 #usuario_test = executable('usuario_test',
