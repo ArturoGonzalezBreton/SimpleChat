@@ -1,5 +1,4 @@
 #include "cliente.hpp"
-#include "../controller/controlador_forma_conexion.hpp"
 #include "../../res/estilizador.hpp"
 #include <iostream>
 #include <gtkmm.h>
