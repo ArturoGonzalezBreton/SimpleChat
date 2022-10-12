@@ -92,6 +92,7 @@ string estilizador::estiliza(string mensaje) {
       usuarios += ", ";
     }
     usuarios.pop_back();
+    usuarios.pop_back();
     return azul(type, 0).append(": ").append(usuarios);
   }
 
@@ -128,6 +129,7 @@ string estilizador::estiliza(string mensaje) {
       usuarios += users[i].asString();
       usuarios += ", ";
     }
+    usuarios.pop_back();
     usuarios.pop_back();
     return magenta(type, 0).append(": ").append(usuarios);
   }

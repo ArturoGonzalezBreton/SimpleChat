@@ -52,6 +52,7 @@ namespace mensaje {
     {"NEW_STATUS", NEW_STATUS}
   };
 
+  // Devuelve la representación en cadena de un mensaje.
   std::string a_string(Mensaje mensaje);
 }
 

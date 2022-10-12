@@ -1,15 +1,4 @@
-#include "estado.hpp"
-#include "mensaje.hpp"
-#include "usuario.hpp"
 #include "cliente.hpp"
-#include <iostream>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <string.h>
-#include <string>
 #include <json/json.h>
   
 using namespace std;
@@ -58,7 +47,7 @@ string Cliente::recibe_mensajes() {
   if (msj_recibido == -1)
     throw runtime_error("Ocurrió un error al recibir el mensaje");
   if (msj_recibido == 0)
-    throw runtime_error("El servidor se ha desconectado");
+    throw runtime_error("Se ha desconectado del servidor");
   
   return string(buffer, 0, msj_recibido); 
 }

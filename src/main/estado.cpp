@@ -1,6 +1,4 @@
 #include "estado.hpp"
-#include <string>
-#include <map>
 
 using namespace estado;
 using namespace std;

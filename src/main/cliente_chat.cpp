@@ -185,6 +185,10 @@ namespace {
     if (button_submit_id) {
       button_submit_id -> signal_clicked().connect([=, &cliente] () {
  	string id = entry_id -> get_text();
+	if (id.find(".") != std::string::npos || id.find(" ") != std::string::npos) {
+	  id_error -> set_text("El id no debe contener puntos ni espacios");
+	  return;
+	}
 	string mensaje, respuesta;
 	cliente.set_id(id);
 	mensaje = "{ \"type\": \"IDENTIFY\", \n";
@@ -397,13 +401,14 @@ namespace {
 	string mensaje;
 	if (!(entry_status -> get_text()).empty()) {
 	  string estado = entry_status -> get_text();
-	  if (estado != "AWAY" || estado != "ACTIVE" || estado != "BUSY") {
+	  if (!estado.compare("AWAY") && !estado.compare("ACTIVE") && !estado.compare("BUSY")) {
 	    entry_status -> set_text("El estado no es válido");
 	    return;
 	  }
 	  mensaje = "{ \"type\": \"STATUS\", \n";
 	  mensaje += "\"status\" : \"";
 	  mensaje.append(entry_status -> get_text()).append("\" }");
+	  entry_status -> set_text("");
 	  cliente.envia_mensaje(mensaje);
 	} else if (!(entry_user -> get_text()).empty() && !(entry_message -> get_text()).empty()) {
 	  mensaje = "{ \"type\": \"MESSAGE\", \n";
@@ -423,6 +428,7 @@ namespace {
 	  mensaje = "{ \"type\": \"PUBLIC_MESSAGE\", \n";
 	  mensaje += "\"message\" : \"";
 	  mensaje.append(entry_message -> get_text()).append("\" }");
+	  entry_message -> set_text("");
 	  cliente.envia_mensaje(mensaje);
 	}
       });

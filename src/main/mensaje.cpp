@@ -7,6 +7,7 @@ using namespace std;
 
 string get_key(Mensaje mensaje);
 
+// Devuelve la representación en cadena de un mensaje.
 string mensaje::a_string(Mensaje mensaje) {
   return get_key(mensaje);
 }

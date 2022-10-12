@@ -4,7 +4,6 @@
 #include "estado.hpp"
 #include "mensaje.hpp"
 #include "usuario.hpp"
-#include <iostream>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/socket.h>
