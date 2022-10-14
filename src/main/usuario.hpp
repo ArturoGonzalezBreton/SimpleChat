@@ -18,9 +18,7 @@ namespace usuario {
     /*
      * Constructor que recibe nombre.
      */
-    Usuario(std::string nombre) {
-      this -> nombre = nombre;
-    }
+    Usuario(std::string nombre);
 
     /*
      * Nos dice si son iguales.

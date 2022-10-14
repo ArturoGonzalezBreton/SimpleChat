@@ -5,6 +5,7 @@ using namespace std;
 
 string get_key(Estado estado);
 
+// Convierte un estado a su representación en cadena.
 string estado::a_string(Estado estado) {
   return get_key(estado);
 }

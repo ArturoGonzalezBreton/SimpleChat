@@ -1,33 +1,38 @@
 #include "usuario.hpp"
-#include <string>
 
 using namespace std;
-using namespace usuario;
+
+/*
+ * Constructor que recibe nombre.
+ */
+usuario::Usuario::Usuario(std::string nombre) {
+  this -> nombre = nombre;
+}
 
 /*
  * Devuelve el identificador del usuario.
  */
-string Usuario::get_nombre() {
+string usuario::Usuario::get_nombre() {
   return this -> nombre;
 }
 
 /*
  * Asigna identificador al usuario.
  */
-void Usuario::set_nombre(std::string nombre) {
+void usuario::Usuario::set_nombre(std::string nombre) {
   this -> nombre = nombre;
 }
 
 /*
  * Nos dice si son iguales.
  */
-bool Usuario::operator==(const Usuario& otro) const {
+bool usuario::Usuario::operator==(const Usuario& otro) const {
   return nombre == otro.nombre;
 }
 
 /*
  * Nos dice si son diferentes.
  */
-bool Usuario::operator!=(const Usuario& otro) const {
+bool usuario::Usuario::operator!=(const Usuario& otro) const {
   return nombre != otro.nombre;
 }

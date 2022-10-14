@@ -74,9 +74,9 @@ namespace servidor {
 			       std::string mensaje);
 
     /*
-     * Crea una nueva sala.
+     * Agrega una nueva sala.
      */
-    void crea_sala(cliente::Cliente &creador, sala::Sala &sala);
+    void agrega_sala(cliente::Cliente &creador, sala::Sala &sala);
 
     /*
      * Manda invitación a un usuario para unirse a una sala.
@@ -130,15 +130,18 @@ namespace servidor {
      * Verifica si existe una sala.
      */
     bool existe_sala(std::string id_sala);
+
+    /*
+     * Crea la cadena Json que enviará a los clientes
+     */
+    std::string crea_respuesta_json(std::map<std::string, std::string> json);
     
   public:    
     /*
      * Constructor que recibe el puerto en el que el servidor
      * Recibirá conexiones.
      */
-    Servidor(int puerto) {
-      this -> puerto = puerto;   
-    }
+    Servidor(int puerto);
     
     /*
      * Crea un socket y lo une al puerto en el que escuchará

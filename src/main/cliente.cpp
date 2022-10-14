@@ -2,13 +2,37 @@
 #include <json/json.h>
   
 using namespace std;
-using namespace cliente;
+
+/*
+ * Constructor que recibe únicamente el puerto.
+ */
+cliente::Cliente::Cliente(int puerto) {
+  this -> puerto = puerto;
+}
+
+/*
+ * Constructor que recibe el puerto y la direccion ip.
+ */
+cliente::Cliente::Cliente(int puerto, std::string direccion_ip) {
+  this -> puerto = puerto;
+  this -> direccion_ip = direccion_ip;
+}
+
+/*
+ * Constructor que recibe el puerto al que se conectará, la dirección ip
+ * del servidor y el identificador del usuario del cliente.
+ */   
+cliente::Cliente::Cliente(int puerto, std::string direccion_ip, std::string id) {
+  this -> puerto = puerto;
+  this -> direccion_ip = direccion_ip;
+  (this -> usuario).set_nombre(id);  
+}
 
 /*
  * Crea un socket y lo une al puerto en el que el servidor
  * escuchará conexiones.
  */
-int Cliente::crea_conexion() {
+int cliente::Cliente::crea_conexion() {
   this -> conexion = socket(AF_INET, SOCK_STREAM, 0);
   if (this -> conexion == -1) {
     throw runtime_error("Ocurrió un error con la conexión");
@@ -22,7 +46,7 @@ int Cliente::crea_conexion() {
 /*
  * Se conecta al servidor.
  */
-void Cliente::conecta() {
+void cliente::Cliente::conecta() {
   if (connect(conexion, (sockaddr*)&enchufe, sizeof(enchufe)) == -1) {
     throw runtime_error("No se pudo conectar al servidor");
   }
@@ -31,7 +55,7 @@ void Cliente::conecta() {
 /*
  * Envía mensajes al servidor.
  */
-void Cliente::envia_mensaje(std::string mensaje) {
+void cliente::Cliente::envia_mensaje(std::string mensaje) {
   if (send(conexion, mensaje.c_str(), mensaje.size(), 0) == -1) {	  
     throw runtime_error("Ocurrió un error al recibir el mensaje");
   }
@@ -40,7 +64,7 @@ void Cliente::envia_mensaje(std::string mensaje) {
 /*
  * Recibe mensajes del servidor.
  */
-string Cliente::recibe_mensajes() {
+string cliente::Cliente::recibe_mensajes() {
   char buffer[4096];
   memset(buffer, 0, 4096);
   int msj_recibido = recv(conexion, buffer, 4096, 0);
@@ -56,77 +80,77 @@ string Cliente::recibe_mensajes() {
  * Desconecta al cliente.
  */
 
-void Cliente::desconecta() {
+void cliente::Cliente::desconecta() {
   close(this -> conexion);
 }
 
 /*
  * Devuelve la conexión del lado del cliente.
  */
-int Cliente::get_conexion() {
+int cliente::Cliente::get_conexion() {
   return this -> conexion;
 }
 
 /*
  * Asigna la conexion del lado del cliente.
  */
-void Cliente::set_conexion(int conexion) {
+void cliente::Cliente::set_conexion(int conexion) {
   this -> conexion = conexion;
 }
 
 /*
  * Devuelve el socket del cliente.
  */
-sockaddr_in Cliente::get_socket() {
+sockaddr_in cliente::Cliente::get_socket() {
   return this -> enchufe;
 }
 
 /*
  * Asigna un enchufe al cliente.
  */
-void Cliente::set_socket(sockaddr_in enchufe) {
+void cliente::Cliente::set_socket(sockaddr_in enchufe) {
   this -> enchufe = enchufe;
 }
 
 /*
  * Devuelve el identificador del usuario.
  */
-std::string Cliente::get_id() {
+std::string cliente::Cliente::get_id() {
   return (this -> usuario).get_nombre();
 }
 
 /*
  * Devuelve el identificador del usuario.
  */
-void Cliente::set_id(std::string id) {
+void cliente::Cliente::set_id(std::string id) {
   (this -> usuario).set_nombre(id);
 }
 
 /*
  * Devuelve el usuario.
  */
-usuario::Usuario Cliente::get_usuario() {
+usuario::Usuario cliente::Cliente::get_usuario() {
   return this -> usuario;
 }
 
 /*
  * Devuelve el estado del cliente.
  */
-estado::Estado Cliente::get_estado() {
+estado::Estado cliente::Cliente::get_estado() {
   return this -> estado;
 }
 
 /*
  * Asigna estado al cliente.
  */
-void Cliente::set_estado(estado::Estado estado) {
+void cliente::Cliente::set_estado(estado::Estado estado) {
   this -> estado = estado;
 }
 
 /*
  * Nos dice si son iguales.
  */
-bool Cliente::operator==(const Cliente& otro) const {
+bool cliente::Cliente::operator==(const cliente::Cliente& otro) const {
   return conexion == otro.conexion and
     puerto == otro.puerto and
     direccion_ip == otro.direccion_ip and
@@ -137,7 +161,7 @@ bool Cliente::operator==(const Cliente& otro) const {
 /*
  * Nos dice si son diferentes.
  */
-bool Cliente::operator!=(const Cliente& otro) const {
+bool cliente::Cliente::operator!=(const cliente::Cliente& otro) const {
   return !(conexion == otro.conexion and
 	   puerto == otro.puerto and
 	   direccion_ip == otro.direccion_ip and
@@ -148,27 +172,27 @@ bool Cliente::operator!=(const Cliente& otro) const {
 /*
  * Asigna ip del servidor a conectarse.
  */
-void Cliente::set_ip(string ip) {
+void cliente::Cliente::set_ip(string ip) {
   this -> direccion_ip = ip;
 }
 
 /*
  * Devuelve ip del servidor a conectarse.
  */
-string Cliente::get_ip() {
+string cliente::Cliente::get_ip() {
   return this -> direccion_ip;
 }
 
 /*
  * Asigna puerto del servidor a conectarse.
  */
-void Cliente::set_puerto(int puerto) {
+void cliente::Cliente::set_puerto(int puerto) {
   this -> puerto = puerto;
 }
 
 /*
  * Devuelve puerto del servidor a conectarse.
  */
-int Cliente::get_puerto() {
+int cliente::Cliente::get_puerto() {
   return this -> puerto;
 }

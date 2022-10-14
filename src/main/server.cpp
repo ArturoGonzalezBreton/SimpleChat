@@ -1,27 +1,17 @@
-#include "estado.hpp"
-#include "mensaje.hpp"
 #include "server.hpp"
-#include "sala.hpp"
-#include "cliente.hpp"
-#include <iostream>
-#include <cstdlib>
-#include <stdexcept>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <map>
-#include <thread>
 #include <json/json.h>
 
 using namespace std;
 using namespace cliente;
-using namespace Json;
-    
+
+/*
+ * Constructor que recibe el puerto en el que el servidor
+ * Recibirá conexiones.
+ */
+servidor::Servidor::Servidor(int puerto) {
+  this -> puerto = puerto;   
+}
+
 /*
  * Crea un socket y lo une al puerto en el que escuchará
  * conexiones.
@@ -70,70 +60,86 @@ void servidor::Servidor::escucha() {
 }
 
 /*
+ * Crea la cadena Json que enviará a los clientes
+ */
+string servidor::Servidor::crea_respuesta_json(std::map<std::string, std::string> json) {
+  string respuesta = "{ ";
+  for (auto& [key, val] : json) {
+    respuesta += "\"";
+    respuesta += key;
+    respuesta += "\":";
+    if (val.find("[") == string::npos) {
+      respuesta += "\"";
+      respuesta += val;
+      respuesta += "\",";
+    } else {
+      respuesta += val;
+      respuesta += ",";
+    }
+  }
+  respuesta.pop_back();
+  respuesta += " }";
+  return respuesta;
+}
+
+/*
  * Asigna identificador al cliente.
  */
 void servidor::Servidor::identifica_cliente(Cliente &cliente, string id) {
-  string respuesta;
+  string respuesta;  
   if (clientes.find(id) != clientes.end()) {
-    respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += "\"message\": \"El usuario '";
-    respuesta.append(id).append("' ya existe\", \n");
-    respuesta += "\"operation\": \"IDENTIFY\", \n";
-    respuesta += "\"username\": \"";
-    respuesta.append(id).append("\" }");
+    string mensaje = "El usuario ";
+    mensaje += id;
+    mensaje += " ya existe";
+    respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				      {"message", mensaje},
+				      {"operation", "IDENTIFY"},
+				      {"username", id} });   
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
-    return;
   } else {
-    respuesta = "{ \"type\": \"INFO\", \n"; 
-    respuesta += "\"message\": \"success\", \n";
-    respuesta += "\"operation\": \"IDENTIFY\" }";
-    string aviso;
-    aviso = "{ \"type\": \"NEW_USER\", \n";
-    aviso += "\"username\": \"";
-    aviso.append(id).append("\" }");
-
+    respuesta = crea_respuesta_json({ {"type", "INFO"},
+				      {"message", "succes"},
+				      {"operation", "IDENTIFY"} });
+    string aviso = crea_respuesta_json({ {"type", "NEW_USER"},
+					 {"username", id} });    
     for (auto& [key, val] : clientes) {
       send((val.get_conexion()), aviso.c_str(), aviso.size() + 1 , 0);
     }
+    cliente.set_id(id);
+    cliente.set_estado(estado::Estado::ACTIVE);
+    this -> clientes.insert({id, cliente});
+    send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);  
   }
-  cliente.set_id(id);
-  cliente.set_estado(estado::Estado::ACTIVE);
-  this -> clientes.insert({cliente.get_id(), cliente});
-  send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);  
 }
 
 /*
  * Asigna un estado al cliente.
  */
 void servidor::Servidor::asigna_estado(Cliente &cliente, estado::Estado estado) {
-  string respuesta;
+  string respuesta, status = estado::a_string(estado);
   if (cliente.get_estado() == estado) {
-    respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += "\"message\": \"El estado ya es '";
-    respuesta.append(estado::a_string(estado)).append("'\", \n");
-    respuesta += "\"operation\": \"STATUS\", \n";
-    respuesta += "\"status\": \"";
-    respuesta.append(estado::a_string(estado)).append("\" }");
+    string mensaje = "El estado ya es '";
+    mensaje += status;
+    mensaje += "'";
+    respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				      {"message", mensaje},
+				      {"operation", "STATUS"},
+				      {"status", status} });   
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
-    return;
   } else {
-    respuesta = "{ \"type\": \"INFO\", \n"; 
-    respuesta += "\"message\": \"success\", \n";
-    respuesta += "\"operation\": \"STATUS\" }";
-    string aviso;
-    aviso = "{ \"type\": \"NEW_STATUS\", \n";
-    aviso += "\"username\": \"";
-    aviso.append(cliente.get_id()).append("\", \n");
-    aviso += "\"status\": \"";
-    aviso.append(estado::a_string(estado)).append("\" }");
-
+    respuesta = crea_respuesta_json({ {"type", "INFO"},
+				      {"message", "succes"},
+				      {"operation", "STATUS"} });
+    string aviso = crea_respuesta_json({ {"type", "NEW_STATUS"},
+					 {"username", cliente.get_id()},
+					 {"status", status} });    
     for (auto& [key, val] : clientes) {
       if (key != cliente.get_id()) 
       send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
     }
+    cliente.set_estado(estado);
+    send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   }
-  cliente.set_estado(estado);
-  send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
 }
 
 /*
@@ -149,11 +155,10 @@ void servidor::Servidor::envia_usuarios(Cliente &cliente) {
     usuarios += "\"";
     usuarios += ",";
   }
-  usuarios.erase(usuarios.end()-1);
+  usuarios.pop_back();
   usuarios += " ]";
-  respuesta = "{ \"type\": \"USER_LIST\", \n";
-  respuesta += "\"usernames\": ";
-  respuesta.append(usuarios).append(" }");
+  respuesta = crea_respuesta_json({ {"type", "USER_LIST"},
+				    {"usernames", usuarios} });
   send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);  
 }
 
@@ -161,12 +166,9 @@ void servidor::Servidor::envia_usuarios(Cliente &cliente) {
  * Envía un mensaje privado.
  */
 void servidor::Servidor::envia_mensaje_privado(Cliente &remitente, string id_destinatario, string mensaje) {
-  string respuesta;
-  respuesta = "{ \"type\": \"MESSAGE_FROM\", \n";
-  respuesta += "\"username\": \"";
-  respuesta.append(remitente.get_id()).append("\", \n");
-  respuesta += "\"message\": \"";
-  respuesta.append(mensaje).append("\" }");
+  string respuesta = crea_respuesta_json({ {"type", "MESSAGE_FROM"},
+					   {"username", remitente.get_id()},
+					   {"message", mensaje} });
   send(clientes[id_destinatario].get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
 }
 
@@ -174,39 +176,34 @@ void servidor::Servidor::envia_mensaje_privado(Cliente &remitente, string id_des
  * Envía un mensaje público.
  */
 void servidor::Servidor::envia_mensaje_publico(Cliente &remitente, string mensaje) {
-  string respuesta;
-  respuesta = "{ \"type\": \"PUBLIC_MESSAGE_FROM\", \n";
-  respuesta += "\"username\": \"";
-  respuesta.append(remitente.get_id()).append("\", \n");
-  cout << respuesta << endl;
-  respuesta += "\"message\": \"";
-  respuesta.append(mensaje).append("\" }");
-
+  string respuesta = crea_respuesta_json({ {"type", "PUBLIC_MESSAGE_FROM"},
+					   {"username", remitente.get_id()},
+					   {"message", mensaje} });
   for (auto& [key, val] : clientes) {
-    if (key != remitente.get_id()) {
-      send(val.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
-    }
+    if (key != remitente.get_id()) 
+      send(val.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);   
   }
 }
 
 /*
- * Crea una nueva sala.
+ * Agrega una nueva sala.
  */
-void servidor::Servidor::crea_sala(Cliente &creador, sala::Sala &sala) {
+void servidor::Servidor::agrega_sala(Cliente &creador, sala::Sala &sala) {
   string respuesta;
   if (this -> salas.find(sala.get_id()) != salas.end()) {
-    respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += "\"message\": \"El cuarto '";
-    respuesta.append(sala.get_id()).append("' ya existe\", \n");
-    respuesta += "\"operation\": \"NEW_ROOM\", \n";
-    respuesta += "\"roomname\": \"";
-    respuesta.append(sala.get_id()).append("\" }");
+    string mensaje = "El cuarto '";
+    mensaje += sala.get_id();
+    mensaje += "' ya esxiste";
+    respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				      {"message", mensaje},
+				      {"operation", "NEW_ROOM"},
+				      {"roomname", sala.get_id()} });   
     send(creador.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
+    respuesta = crea_respuesta_json({ {"type", "INFO"},
+				      {"message", "succes"},
+				      {"operation", "NEW_ROOM"} }); 
     this -> salas.insert({sala.get_id(), sala});
-    respuesta = "{ \"type\": \"INFO\", \n";
-    respuesta += "\"message\": \"success\", \n";
-    respuesta += "\"operation\": \"NEW_ROOM\" }";
     send(creador.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   }
 }
@@ -216,26 +213,21 @@ void servidor::Servidor::crea_sala(Cliente &creador, sala::Sala &sala) {
  * Regresa false en caso de error.
  */
 bool servidor::Servidor::invita_a_sala(Cliente &remitente, string id_invitado, string id_sala) {
-  string respuesta;
+  string respuesta, invitacion;
   if (!salas[id_sala].es_miembro(remitente)) {
     return false;
   } else {
-    respuesta = "{ \"type\": \"INFO\", \n";
-    respuesta += "\"message\": \"success\", \n";
-    respuesta += "\"operation\": \"INVITE\", \n";
-    respuesta += "\"roomname\": \"";
-    respuesta.append(id_sala).append("\" }");
-    
-    string invitacion;
-    invitacion = "{ \"type\": \"INVITATION\", \n";
-    invitacion += "\"message\": \"";
-    invitacion.append(remitente.get_id());
-    invitacion += " te invita al cuarto '";
-    invitacion.append(id_sala).append("'\", \n");
-    invitacion += "\"username\": \"";
-    invitacion.append(remitente.get_id()).append("\", \n");
-    invitacion += "\"roomname\": \"";
-    invitacion.append(id_sala).append("\" }");
+    respuesta = crea_respuesta_json({ {"type", "INFO"},
+				      {"message", "succes"},
+				      {"operation", "INVITE"},
+				      {"roomname", id_sala} });
+    string mensaje = remitente.get_id();
+    mensaje += " te invita al cuarto '";
+    mensaje.append(id_sala) += "'";
+    invitacion = crea_respuesta_json({ {"type", "INVITATION"},
+				       {"message", mensaje},
+				       {"username", remitente.get_id()},
+				       {"roomname", id_sala} });
     salas[id_sala].agrega_invitado(clientes[id_invitado].get_usuario());
     send(remitente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
     send(clientes[id_invitado].get_conexion(), invitacion.c_str(), invitacion.size() + 1, 0);
@@ -248,13 +240,13 @@ bool servidor::Servidor::invita_a_sala(Cliente &remitente, string id_invitado, s
  */
 void servidor::Servidor::envia_error_usuario(Cliente &cliente, string no_existente, string operacion) {
   string respuesta;
-  respuesta = "{ \"type\": \"WARNING\", \n";
-  respuesta += "\"message\": \"El usuario '";
-  respuesta.append(no_existente).append("' no existe\", \n");
-  respuesta += "\"operation\": \"";
-  respuesta.append(operacion).append("\", \n");
-  respuesta += "\"username\": \"";
-  respuesta.append(no_existente).append("\" }");
+  string mensaje = "El usuario '";
+  mensaje += no_existente;
+  mensaje += "' no esxiste";
+  respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				    {"message", mensaje},
+				    {"operation", operacion},
+				    {"username", no_existente} });
   send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
 }
 
@@ -264,40 +256,35 @@ void servidor::Servidor::envia_error_usuario(Cliente &cliente, string no_existen
 void servidor::Servidor::agrega_a_sala(Cliente &cliente, sala::Sala &sala) {
   string respuesta;
   if (!sala.hay_invitacion(cliente.get_usuario()) and sala.get_creador() != cliente) {
-    respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += "\"message\": \"El usuario no ha sido invitado al cuarto '";
-    respuesta.append(sala.get_id()).append("'\", \n");
-    respuesta += "\"operation\": \"JOIN_ROOM\", \n";
-    respuesta += "\"roomname\": \"";
-    respuesta.append(sala.get_id()).append("\" }");
+    string mensaje = "El usuario no ha sido invitado al cuarto '";
+    mensaje.append(sala.get_id()) += "'";
+    respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				      {"message", mensaje},
+				      {"operation", "JOIN_ROOM"},
+				      {"roomname", sala.get_id()} });
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else if (sala.es_miembro(cliente)) {
-    respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += "\"message\": \"El usuario ya se unió al cuarto '";
-    respuesta.append(sala.get_id()).append("'\", \n");
-    respuesta += "\"operation\": \"JOIN_ROOM\", \n";
-    respuesta += "\"roomname\": \"";
-    respuesta.append(sala.get_id()).append("\" }");
+    string mensaje = "El usuario ya se unió al cuarto '";
+    mensaje.append(sala.get_id()) += "'";
+    respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				      {"message", mensaje},
+				      {"operation", "JOIN_ROOM"},
+				      {"roomname", sala.get_id()} });
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
-    string aviso;
-    if (sala.agrega_miembro(cliente)) {
-      respuesta = "{ \"type\": \"INFO\", \n";
-      respuesta += "\"message\": \"success\", \n";
-      respuesta += "\"operation\": \"JOIN_ROOM\", \n";
-      respuesta += "\"roomname\": \"";
-      respuesta.append(sala.get_id()).append("\" }");
-      send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
-      aviso = "{ \"type\": \"JOINED_ROOM\", \n";
-      aviso += "\"roomname\": \"";
-      aviso.append(sala.get_id()).append("\", \n");
-      aviso += "\"username\": \"";
-      aviso.append(cliente.get_id()).append("\" }");
-      for (auto& [key, val] : sala.get_miembros()) {
-	if (val != cliente) 
-	  send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);      
-      }
+    respuesta = crea_respuesta_json({ {"type", "INFO"},
+				      {"message", "succes"},
+				      {"operation", "JOIN_ROOM"},
+				      {"roomname", sala.get_id()} });
+    string aviso = crea_respuesta_json({ {"type", "JOINED_ROOM"},
+					 {"roomname", sala.get_id()},
+					 {"username", cliente.get_id()} }); 
+    send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
+    for (auto& [key, val] : sala.get_miembros()) {
+      if (val != cliente) 
+	send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);            
     }
+    sala.agrega_miembro(cliente);
   }
 }
 
@@ -307,27 +294,25 @@ void servidor::Servidor::agrega_a_sala(Cliente &cliente, sala::Sala &sala) {
 void servidor::Servidor::envia_miembros(Cliente &cliente, std::string id_sala) {
   string respuesta;
   if (!salas[id_sala].es_miembro(cliente)) {
-    respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += "\"message\": \"El usuario no se ha unido al cuarto '";
-    respuesta.append(id_sala).append("'\", \n");
-    respuesta += "\"operation\": \"ROOM_USERS\", \n";
-    respuesta += "\"roomname\": \"";
-    respuesta.append(id_sala).append("\" }");
+    string mensaje = "El usuario no se ha unido al cuarto '";
+    mensaje.append(id_sala) += "'";
+    respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				      {"message", mensaje},
+				      {"operation", "ROOM_USERS"},
+				      {"roomname", id_sala} });
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
-    string miembros;
-    miembros = "[ ";
+    string miembros = "[ ";
     for (auto& [key, val] : salas[id_sala].get_miembros()) {
       miembros += "\"";
       miembros.append(key);
       miembros += "\"";
       miembros += ",";	
     }
-    miembros.erase(miembros.end()-1);
+    miembros.pop_back();
     miembros += " ]";
-    respuesta = "{ \"type\": \"ROOM_USER_LIST\", \n";
-    respuesta += "\"usernames\": ";
-    respuesta.append(miembros).append(" }");
+    respuesta = crea_respuesta_json({ {"type", "ROOM_USER_LIST"},
+				    {"usernames", miembros} });
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   }
 }
@@ -336,24 +321,20 @@ void servidor::Servidor::envia_miembros(Cliente &cliente, std::string id_sala) {
  * Envía un mensaje a los usuarios de una sala.
  */
 void servidor::Servidor::envia_mensaje_sala(Cliente &cliente, sala::Sala &sala, std::string mensaje) {
-  string respuesta;
-  string id_sala = sala.get_id();
+  string respuesta, id_sala = sala.get_id();
   if (!salas[id_sala].hay_invitacion(cliente.get_usuario()) and !salas[id_sala].es_miembro(cliente)) {
-    respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += "\"message\": \"El usuario no se ha unido al cuarto '";
-    respuesta.append(id_sala).append("'\", \n");
-    respuesta += "\"operation\": \"\", \n";
-    respuesta += "\"roomname\": \"";
-    respuesta.append(id_sala).append("\" }");
+    string mensaje = "El usuario no se ha unido al cuarto '";
+    mensaje.append(sala.get_id()) += "'";
+    respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				      {"message", mensaje},
+				      {"operation", "ROOM_MESSAGE"},
+				      {"roomname", sala.get_id()} });
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
-    respuesta = "{ \"type\": \"ROOM_MESSAGE_FROM\", \n";
-    respuesta += "\"roomname\": \"";
-    respuesta.append(id_sala).append("\", \n");
-    respuesta += "\"username\": \"";
-    respuesta.append(cliente.get_id()).append("\", \n");
-    respuesta += "\"message\": \"";
-    respuesta.append(mensaje).append("\" }");
+    string respuesta = crea_respuesta_json({ {"type", "ROOM_MESSAGE_FROM"},
+					     {"roomname", id_sala},
+					     {"username", cliente.get_id()},
+					     {"message", mensaje} });
     for (auto& [key, val] : sala.get_miembros()) {
       if (val != cliente)
 	send(val.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
@@ -365,29 +346,24 @@ void servidor::Servidor::envia_mensaje_sala(Cliente &cliente, sala::Sala &sala, 
  * Saca a un cliente de una sala.
  */
 void servidor::Servidor::saca_de_sala(Cliente &cliente, sala::Sala &sala) {
-  string respuesta;
-  string id_sala = sala.get_id();
+  string respuesta, id_sala = sala.get_id();
   if (!sala.es_miembro(cliente)) {
-    respuesta = "{ \"type\": \"WARNING\", \n";
-    respuesta += "\"message\": \"El usuario no se ha unido al cuarto '";
-    respuesta.append(id_sala).append("'\", \n");
-    respuesta += "\"operation\": \"LEAVE_ROOM\", \n";
-    respuesta += "\"roomname\": \"";
-    respuesta.append(id_sala).append("\" }");
+    string mensaje = "El usuario no se ha unido al cuarto '";
+    mensaje.append(sala.get_id()) += "'";
+    respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				      {"message", mensaje},
+				      {"operation", "LEAVE_ROOM"},
+				      {"roomname", sala.get_id()} });
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
   } else {
-    string aviso;
-    respuesta = "{ \"type\": \"INFO\", \n";
-    respuesta += "\"message\": \"success\", \n";
-    respuesta += "\"operation\": \"LEAVE_ROOM\", \n";
-    respuesta += "\"roomname\": \"";
-    respuesta.append(id_sala).append("\" }");
+    respuesta = crea_respuesta_json({ {"type", "INFO"},
+				      {"message", "succes"},
+				      {"operation", "LEAVE_ROOM"},
+				      {"roomname", id_sala} });
+    string aviso = crea_respuesta_json({ {"type", "LEFT_ROOM"},
+					 {"roomname", sala.get_id()},
+					 {"username", cliente.get_id()} }); 
     send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
-    aviso = "{ \"type\": \"LEFT_ROOM\", \n";
-    aviso += "\"roomname\": \"";
-    aviso.append(id_sala).append("\", \n");
-    aviso += "\"username\": \"";
-    aviso.append(cliente.get_id()).append("\" }");    
     sala.elimina_miembro(cliente);
     if (sala.es_vacia()) {
       salas.erase(sala.get_id());
@@ -404,22 +380,17 @@ void servidor::Servidor::saca_de_sala(Cliente &cliente, sala::Sala &sala) {
  * cliente de las salas en donde estaba.
  */
 void servidor::Servidor::notifica_salida(Cliente &cliente) {
-  string aviso;
-
   for (auto& [key, val] : salas) {
     if (val.es_miembro(cliente))
       saca_de_sala(cliente, val);
     if (salas.empty()) 
       break;
   }
-  
-  aviso = "{ \"type\": \"DISCONNECTED\", \n";
-  aviso += "\"username\": \"";
-  aviso.append(cliente.get_id()).append("\" }");
+  string aviso = crea_respuesta_json({ {"type", "DISCONNECTED"},
+				       {"username", cliente.get_id()} });
   for (auto& [key, val] : clientes) {
     send(val.get_conexion(), aviso.c_str(), aviso.size() + 1 , 0);
   }
-  
   cierra_cliente(cliente.get_id());
 }
 
@@ -475,8 +446,8 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
     
     cout << mensaje << endl;
     
-    Reader reader;
-    Value msj_json;
+    Json::Reader reader;
+    Json::Value msj_json;
     
     reader.parse(mensaje, msj_json);
     
@@ -500,8 +471,7 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
 	cierra_cliente(cliente.get_id());
 	return false;
       }
-      switch (estado::tabla[msj_json["status"].asString()]) {
-	
+      switch (estado::tabla[msj_json["status"].asString()]) {	
       case estado::Estado::AWAY:
 	asigna_estado(cliente, estado::Estado::AWAY);
 	break;
@@ -551,7 +521,7 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
 	return false;
       }
       sala::Sala sala(cliente, msj_json["roomname"].asString());
-      crea_sala(cliente, sala);
+      agrega_sala(cliente, sala);
       break;
     }
       
@@ -561,7 +531,7 @@ bool servidor::Servidor::recibe_mensaje(cliente::Cliente cliente) {
 	return false;
       }
       
-      Value invitados = msj_json["usernames"];
+      Json::Value invitados = msj_json["usernames"];
       if (invitados.empty()) {
 	cierra_cliente(cliente.get_id());
 	return false;
@@ -663,12 +633,11 @@ bool servidor::Servidor::existe_sala(string id_sala) {
  */
 void servidor::Servidor::envia_error_sala(Cliente &cliente, string no_existente, string operacion) {
   string respuesta;
-  respuesta = "{ \"type\": \"WARNING\", \n";
-  respuesta += "\"message\": \"El cuarto '";
-  respuesta.append(no_existente).append("' no existe\", \n");
-  respuesta += "\"operation\": \"";
-  respuesta.append(operacion).append("\", \n");
-  respuesta += "\"roomname\": \"";
-  respuesta.append(no_existente).append("\" }");
+  string mensaje = "El cuarto '";
+  mensaje.append(no_existente) += "' no existe";
+  respuesta = crea_respuesta_json({ {"type", "WARNING"},
+				    {"message", mensaje},
+				    {"operation", operacion},
+				    {"roomname", no_existente} });
   send(cliente.get_conexion(), respuesta.c_str(), respuesta.size() + 1 , 0);
 }

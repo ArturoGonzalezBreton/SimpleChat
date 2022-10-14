@@ -1,6 +1,4 @@
 #include "mensaje.hpp"
-#include <string>
-#include <map>
 
 using namespace mensaje;
 using namespace std;

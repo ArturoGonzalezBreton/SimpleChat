@@ -1,42 +1,45 @@
-#include "cliente.hpp"
 #include "sala.hpp"
-#include <string>
 
 using namespace std;
-using namespace sala;
+
+sala::Sala::Sala(cliente::Cliente &creador, std::string nombre) {
+  this -> creador = creador;
+  this -> nombre = nombre;
+  this -> miembros.insert({creador.get_id(), creador});
+}
 
 /*
  * Devuelve el creador de la sala.
  */
-cliente::Cliente Sala::get_creador() {
+cliente::Cliente sala::Sala::get_creador() {
   return this -> creador;
 }  
  
 /*
  * Devuelve el nombre de la sala.
  */
-string Sala::get_id() {
+string sala::Sala::get_id() {
   return this -> nombre;
 }
 
 /*
  * Devuelve la los miembros de la sala.
  */
-map<string, cliente::Cliente> Sala::get_miembros() {
+map<string, cliente::Cliente> sala::Sala::get_miembros() {
   return this -> miembros;
 }
 
 /*
  * Regresa la lista de invitados.
  */
-std::list<usuario::Usuario> Sala::get_invitados() {
+std::list<usuario::Usuario> sala::Sala::get_invitados() {
   return this -> invitados;
 }
 
 /*
  * Busca un invitado.
  */
-bool Sala::hay_invitacion(usuario::Usuario invitado) {
+bool sala::Sala::hay_invitacion(usuario::Usuario invitado) {
   list<usuario::Usuario>::iterator it;
   
   for (it = invitados.begin(); it != invitados.end(); it++) {
@@ -49,7 +52,7 @@ bool Sala::hay_invitacion(usuario::Usuario invitado) {
 /*
  * Agrega un invitado.
  */
-void Sala::agrega_invitado(usuario::Usuario invitado) {
+void sala::Sala::agrega_invitado(usuario::Usuario invitado) {
   if (!hay_invitacion(invitado))
     this -> invitados.push_back(invitado);     
 }
@@ -57,14 +60,14 @@ void Sala::agrega_invitado(usuario::Usuario invitado) {
 /*
  * Busca un miembro en la sala.
  */
-bool Sala::es_miembro(cliente::Cliente &miembro) {
-  return this -> miembros.find(miembro.get_id()) != miembros.end() || miembro == this -> creador;
+bool sala::Sala::es_miembro(cliente::Cliente &miembro) {
+  return this -> miembros.find(miembro.get_id()) != miembros.end();
 }
 
 /*
  * Elimina a un miembro.
  */
-void Sala::elimina_miembro(cliente::Cliente &cliente) {
+void sala::Sala::elimina_miembro(cliente::Cliente &cliente) {
   this -> miembros.erase(cliente.get_id());
   this -> invitados.remove(cliente.get_usuario());
 }
@@ -72,17 +75,13 @@ void Sala::elimina_miembro(cliente::Cliente &cliente) {
 /*
  * Agrega un miembro.
  */
-bool Sala::agrega_miembro(cliente::Cliente &cliente) {
-  if (this -> miembros.find(cliente.get_id()) == miembros.end()) {
-    this -> miembros.insert({cliente.get_id(), cliente});
-    return true;
-  }
-  return false;
+void sala::Sala::agrega_miembro(cliente::Cliente &cliente) {
+  this -> miembros.insert({cliente.get_id(), cliente});;
 } 
 
 /*
  * Verifica si hay usuarios en la sala.
  */
-bool Sala::es_vacia() {
+bool sala::Sala::es_vacia() {
   return this -> miembros.empty();
 }

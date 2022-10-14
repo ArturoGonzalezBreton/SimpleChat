@@ -46,27 +46,18 @@ namespace cliente {
     /*
      * Constructor que recibe únicamente el puerto.
      */
-    Cliente(int puerto) {
-      this -> puerto = puerto;
-    }
+    Cliente(int puerto);
 
     /*
      * Constructor que recibe el puerto y la direccion ip.
      */
-    Cliente(int puerto, std::string direccion_ip) {
-      this -> puerto = puerto;
-      this -> direccion_ip = direccion_ip;
-    }
-    
+    Cliente(int puerto, std::string direccion_ip);
+      
     /*
      * Constructor que recibe el puerto al que se conectará, la dirección ip
      * del servidor y el identificador del usuario del cliente.
      */   
-    Cliente(int puerto, std::string direccion_ip, std::string id) {
-      this -> puerto = puerto;
-      this -> direccion_ip = direccion_ip;
-      (this -> usuario).set_nombre(id);  
-    }
+    Cliente(int puerto, std::string direccion_ip, std::string id);
 
     /*
      * Crea un socket y lo une al puerto en el que el servidor

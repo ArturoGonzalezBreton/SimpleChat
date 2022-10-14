@@ -17,7 +17,7 @@ namespace sala {
     std::string nombre;
     // Creador de la sala.
     cliente::Cliente creador;
-    // Usuarios en la sala.
+    // Usuarios en la sala.{
     std::map<std::string, cliente::Cliente> miembros;
     // Lista de invitados.
     std::list<usuario::Usuario> invitados;
@@ -26,11 +26,7 @@ namespace sala {
 
     Sala() {}
 
-    Sala(cliente::Cliente &creador, std::string nombre) {
-      this -> creador = creador;
-      this -> nombre = nombre;
-      this -> miembros.insert({creador.get_id(), creador});
-    }
+    Sala(cliente::Cliente &creador, std::string nombre);
 
     /*
      * Devuelve el creador de la sala.
@@ -75,7 +71,7 @@ namespace sala {
     /*
      * Agrega un miembro.
      */
-    bool agrega_miembro(cliente::Cliente &cliente);
+    void agrega_miembro(cliente::Cliente &cliente);
 
     /*
      * Verifica si hay usuarios en la sala.
