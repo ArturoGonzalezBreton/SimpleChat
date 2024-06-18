@@ -1,6 +1,6 @@
-Primer proyecto.
+Simple Chat Application.
 
-Para construir el proyecto y ejecutar el programa, ejecute los siguientes comandos:
+Build project:
 
 `git clone https://gitlab.com/arturo.gbreton/chat`
 
